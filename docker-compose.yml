@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  synexs-swarm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: synexs-swarm
+    restart: unless-stopped
+
+    ports:
+      - "5000:5000"   # Flask dashboard
+      - "8080:8080"   # Honeypot server
+
+    volumes:
+      # Persistent data
+      - ./datasets:/app/datasets
+      - ./logs:/app/logs
+      - ./comm_outbox:/app/comm_outbox
+      - ./inbox:/app/inbox
+      # Model files
+      - ./synexs_tag_model.pt:/app/synexs_tag_model.pt
+      - ./vectorizer.joblib:/app/vectorizer.joblib
+      - ./training_data.jsonl:/app/training_data.jsonl
+
+    environment:
+      # Core settings
+      - WORK_DIR=/app
+      - PYTHONUNBUFFERED=1
+      - FLASK_ENV=production
+
+      # API Keys (override via .env file)
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN:-8204790720:AAEFxHurgJGIigQh0MtOlUbxX46PU8A2rA8}
+      - CHAT_ID=${CHAT_ID:-1749138955}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY:-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}
+
+      # Swarm configuration
+      - CYCLE_INTERVAL=${CYCLE_INTERVAL:-1800}
+      - MAX_PARALLEL_FILES=${MAX_PARALLEL_FILES:-3}
+      - DISK_MIN_FREE_GB=${DISK_MIN_FREE_GB:-2}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Run mode: full, dashboard-only, swarm-only
+    command: full
+
+  # Optional: Separate honeypot container
+  synexs-honeypot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: synexs-honeypot
+    restart: unless-stopped
+    profiles: ["separate"]  # Only start with --profile separate
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./datasets:/app/datasets
+
+    command: honeypot
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"

@@ -1,0 +1,157 @@
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+credentials*.json
+*.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.pyc
+venv/
+env/
+ENV/
+synexs_env/
+
+# Logs
+*.log
+*.log.*
+logs/
+nohup.out
+*.out
+
+# AI/ML Models and Data
+*.pt
+*.pth
+*.h5
+*.pkl
+*.joblib
+*.json.gz
+*.model
+*.bin
+core_model.pth
+synexs_core_model.pth
+synexs_tag_model.pt
+vectorizer*.joblib
+label_encoder.joblib
+mlb_classes.json
+
+# Training data and datasets
+training_data*.jsonl
+block_*.jsonl
+datasets/
+*.tar.gz
+*.zip
+synexs_gpu_package.tar.gz
+synexs_wordpress_docs.tar.gz
+
+# Temporary and backup files
+*.backup
+*.save
+*.old
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# State files
+.dna_collector_state.json
+processed_ids.json
+memory_log.json
+file_hashes.json
+real_world_kills.json
+user_profile.json
+tag_counts.json
+tag_whitelist.json
+vocab*.json
+
+# Output and generated files
+agents_generated/
+variants/
+comm_outbox/
+inbox/
+agent_logs/
+archive/
+old_swarm/
+user_profiles/
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+agent.exe
+loader.exe
+update.exe
+update.dll
+meterpreter.dll
+payload.dll
+shellcode.bin
+
+# C/C++ build artifacts
+*.o
+*.obj
+cc
+
+# Rust build artifacts
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Node.js (if applicable)
+node_modules/
+package-lock.json
+
+# Docker
+.dockerignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+.grok/
+
+# WordPress related (already uploaded)
+wordpress_html/
+wordpress_*.tar.gz
+
+# Metasploit
+msfinstall
+handler.rc
+
+# Other project-specific
+www/
+static/
+templates/
+android/
+capacitor.config.json
+phish.html
+nano.save*
+25.3
+blockchain_log.out
+dashboard_log.out
+flask_log.out
+loop_core021.out

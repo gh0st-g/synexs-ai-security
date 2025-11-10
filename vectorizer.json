@@ -1,0 +1,15 @@
+# save_vectorizer.py
+import json
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+with open("training_data.jsonl", "r") as f:
+    data = [json.loads(line) for line in f]
+
+texts = [entry["subject"] + " " + entry["snippet"] for entry in data]
+vectorizer = TfidfVectorizer(max_features=1000)
+vectorizer.fit(texts)
+
+with open("vectorizer.json", "w") as f:
+    json.dump(vectorizer.__dict__, f)
+
+print("✅ Saved vectorizer to vectorizer.json")
