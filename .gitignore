@@ -98,6 +98,15 @@ archive/
 old_swarm/
 user_profiles/
 
+# Training data directories (Phase 1)
+training_logs/
+training_logs_*/
+training_logs/batches/*.pt
+training_logs/missions/*.jsonl
+checkpoint.json
+progress.json
+*.tar.gz
+
 # Compiled binaries
 *.exe
 *.dll
