@@ -26,6 +26,8 @@ RUN pip install --no-cache-dir \
     dnspython==2.6.1 \
     scikit-learn==1.4.0 \
     joblib==1.3.2 \
+    python-dotenv==1.0.0 \
+    psutil==5.9.8 \
     && pip cache purge
 
 # Copy application code
