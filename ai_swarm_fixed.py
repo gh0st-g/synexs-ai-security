@@ -29,7 +29,7 @@ WORK_DIR = os.getenv('WORK_DIR', '/app')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN', '')
 TELEGRAM_CHAT_ID = int(os.getenv('TELEGRAM_CHAT_ID', '0'))
 CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', '')
-CYCLE_INTERVAL = int(os.getenv('CYCLE_INTERVAL', '1800'))  # 30 minutes
+CYCLE_INTERVAL = int(os.getenv('CYCLE_INTERVAL', '7200'))  # 2 hours (was 30 min)
 MEMORY_LOG = "memory_log.json"
 AGENTS_DIR = "datasets/agents"
 SUCCESS_THRESHOLD = 5
@@ -766,7 +766,12 @@ Status: ✅ ACTIVE""", force=True)
 
             evolution_cycle()
 
-            print(f"\n⏸️  Sleep {CYCLE_INTERVAL // 60}min...")
+            hours = CYCLE_INTERVAL // 3600
+            mins = (CYCLE_INTERVAL % 3600) // 60
+            if hours > 0:
+                print(f"\n⏸️  Sleep {hours}h {mins}min...")
+            else:
+                print(f"\n⏸️  Sleep {mins}min...")
             time.sleep(CYCLE_INTERVAL)
 
         except KeyboardInterrupt:

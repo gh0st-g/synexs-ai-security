@@ -6,7 +6,9 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=/root/synexs
-ExecStart=/usr/bin/python3 /root/synexs/ai_swarm_fixed.py
+Environment="WORK_DIR=/root/synexs"
+Environment="CYCLE_INTERVAL=7200"
+ExecStart=/root/synexs/synexs_env/bin/python3 -u /root/synexs/ai_swarm_fixed.py
 Restart=on-failure
 RestartSec=300
 StandardOutput=append:/var/log/synexs-ai-swarm.log
