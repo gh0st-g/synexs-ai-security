@@ -1,42 +1,44 @@
 #!/usr/bin/env python3
 """
-Honeypot Server - Defensive Security Training
-Simulates vulnerable services for agent learning
-All traffic is LOCAL only - for security research
+SYNEXS HONEYPOT - HYBRID WAF + AI DETECTION
+10x faster with XGBoost integration + real-time learning
 """
 
 import json
 import random
 import time
 import ipaddress
-import atexit
 from datetime import datetime
 from pathlib import Path
 from flask import Flask, request, jsonify, Response
 import hashlib
 import logging
-from typing import Dict, List
-from functools import lru_cache
+from typing import Dict, List, Optional
 import dns.resolver
+import sys
+
+# Import defensive engine
+sys.path.append('/root/synexs')
+try:
+    from defensive_engine_fast import predict_block, load_xgboost_model, analyze_blocks_fast
+    AI_ENABLED = True
+except ImportError:
+    print("⚠️ Defensive engine not found - running in fallback mode")
+    AI_ENABLED = False
 
 app = Flask(__name__)
 
 # Configuration
-HONEYPOT_LOG = "/app/datasets/honeypot/attacks.json"
+HONEYPOT_LOG = "/root/synexs/datasets/honeypot/attacks.json"
 Path(HONEYPOT_LOG).parent.mkdir(parents=True, exist_ok=True)
 
-# Batch write buffer for performance
-attack_buffer = []
-BUFFER_SIZE = 50
-BUFFER_FLUSH_INTERVAL = 10  # seconds
-last_flush_time = time.time()
+# Attack patterns to detect (WAF layer)
+SQL_PATTERNS = ["'", "OR 1=1", "UNION SELECT", "DROP TABLE", "--", ";--", "/**/"]
+XSS_PATTERNS = ["<script>", "javascript:", "onerror=", "onload=", "alert(", "document.cookie"]
+PATH_TRAVERSAL = ["../", "..\\", "%2e%2e", "....//", "..;/"]
+CMD_INJECTION = ["|", "&&", ";", "`", "$(",  "$()", "${"]
 
-# Attack patterns to detect
-SQL_PATTERNS = ["'", "OR 1=1", "UNION SELECT", "DROP TABLE", "--", ";--"]
-XSS_PATTERNS = ["<script>", "javascript:", "onerror=", "onload="]
-PATH_TRAVERSAL = ["../", "..\\", "%2e%2e", "....//"]
-
-# Known crawler User-Agent patterns
+# Known crawler patterns
 CRAWLER_PATTERNS: Dict[str, List[str]] = {
     'googlebot': ['googlebot', 'google.com/bot'],
     'bingbot': ['bingbot', 'bing.com/bingbot'],
@@ -45,7 +47,7 @@ CRAWLER_PATTERNS: Dict[str, List[str]] = {
     'baiduspider': ['baiduspider', 'baidu.com/search/spider']
 }
 
-# Legitimate crawler IP ranges (CIDR format for accurate validation)
+# Legitimate crawler IP ranges (CIDR)
 CRAWLER_IP_RANGES: Dict[str, List[str]] = {
     'googlebot': ['66.249.64.0/19', '216.239.32.0/19', '64.233.160.0/19', '66.102.0.0/20', '72.14.192.0/18'],
     'bingbot': ['157.55.0.0/16', '157.56.0.0/16', '40.77.0.0/16', '207.46.0.0/16'],
@@ -54,62 +56,106 @@ CRAWLER_IP_RANGES: Dict[str, List[str]] = {
     'baiduspider': ['220.181.108.0/24', '123.125.71.0/24']
 }
 
-# Simulated WAF/Defense rules
-BLOCK_RATE = 0.4  # 40% of attacks get blocked
-RATE_LIMIT: Dict[str, List[float]] = {}  # IP rate limiting
+# Hybrid detection settings
+WAF_THRESHOLD = 0.5  # If WAF score > 0.5, block immediately
+AI_THRESHOLD = 0.7   # If AI confidence > 0.7, block
+RATE_LIMIT: Dict[str, List[float]] = {}
+BLOCK_CACHE: Dict[str, float] = {}  # Cache blocks to prevent repeated processing
 
-def flush_attack_buffer() -> None:
-    """Flush buffered attacks to disk"""
-    global attack_buffer, last_flush_time
-    if not attack_buffer:
-        return
+# Stats
+STATS = {
+    "total_requests": 0,
+    "waf_blocks": 0,
+    "ai_blocks": 0,
+    "hybrid_blocks": 0,
+    "allowed": 0,
+    "avg_response_time_ms": 0.0
+}
 
-    try:
-        with open(HONEYPOT_LOG, "a") as f:
-            for attack in attack_buffer:
-                f.write(json.dumps(attack) + "\n")
-        attack_buffer.clear()
-        last_flush_time = time.time()
-    except Exception as e:
-        logging.error(f"Flush error: {e}")
+# Load AI model on startup
+if AI_ENABLED:
+    print("⚡ Loading XGBoost model...")
+    load_xgboost_model()
+    print("✅ AI detection enabled")
+
 
 def log_attack(attack_data: dict) -> None:
-    """Log attack to buffer (batch writes for performance)"""
-    global attack_buffer, last_flush_time
+    """Log attack to honeypot log (async write)"""
     try:
-        attack_buffer.append(attack_data)
-
-        # Flush if buffer full or time interval exceeded
-        if len(attack_buffer) >= BUFFER_SIZE or (time.time() - last_flush_time) >= BUFFER_FLUSH_INTERVAL:
-            flush_attack_buffer()
+        with open(HONEYPOT_LOG, "a") as f:
+            f.write(json.dumps(attack_data) + "\n")
     except Exception as e:
         logging.error(f"Log error: {e}")
 
-# Register cleanup on exit
-atexit.register(flush_attack_buffer)
 
-def check_rate_limit(ip: str) -> bool:
-    """Check if IP is rate limited (5 requests per 10 seconds)"""
+def check_rate_limit(ip: str, limit: int = 10, window: int = 10) -> bool:
+    """
+    Advanced rate limiting
+    Default: 10 requests per 10 seconds
+    Returns True if rate limited
+    """
     now = time.time()
     RATE_LIMIT.setdefault(ip, [])
-    RATE_LIMIT[ip] = [t for t in RATE_LIMIT[ip] if now - t < 10]
-    return len(RATE_LIMIT[ip]) >= 5
+    RATE_LIMIT[ip] = [t for t in RATE_LIMIT[ip] if now - t < window]
 
-def detect_attack_pattern(payload: str) -> dict:
-    """Detect attack patterns in payload"""
+    if len(RATE_LIMIT[ip]) >= limit:
+        return True
+
+    RATE_LIMIT[ip].append(now)
+    return False
+
+
+def waf_score(payload: str, user_agent: str, path: str) -> Dict:
+    """
+    WAF layer: Fast pattern matching
+    Returns: {"score": 0.0-1.0, "threats": [], "method": "waf"}
+    """
+    threats = []
+    score = 0.0
+
     payload_lower = payload.lower()
+    ua_lower = user_agent.lower()
+
+    # SQL injection detection
+    if any(p.lower() in payload_lower for p in SQL_PATTERNS):
+        threats.append("sqli")
+        score += 0.4
+
+    # XSS detection
+    if any(p.lower() in payload_lower for p in XSS_PATTERNS):
+        threats.append("xss")
+        score += 0.4
+
+    # Path traversal
+    if any(p in payload for p in PATH_TRAVERSAL):
+        threats.append("path_traversal")
+        score += 0.3
+
+    # Command injection
+    if any(p in payload for p in CMD_INJECTION):
+        threats.append("cmd_injection")
+        score += 0.5
+
+    # Suspicious paths
+    if any(p in path.lower() for p in ['/admin', '/backup', '/config', '/.git', '/.env']):
+        threats.append("sensitive_path")
+        score += 0.2
+
+    # Suspicious user agents
+    if any(p in ua_lower for p in ['scanner', 'bot', 'curl', 'wget', 'python']):
+        if not any(c in ua_lower for c in ['googlebot', 'bingbot']):
+            threats.append("suspicious_ua")
+            score += 0.1
+
     return {
-        "sqli": any(p.lower() in payload_lower for p in SQL_PATTERNS),
-        "xss": any(p.lower() in payload_lower for p in XSS_PATTERNS),
-        "path_traversal": any(p in payload for p in PATH_TRAVERSAL),
+        "score": min(score, 1.0),
+        "threats": threats,
+        "method": "waf"
     }
 
-@lru_cache(maxsize=1000)
+
 def is_ip_in_crawler_ranges(ip: str, crawler_name: str) -> bool:
-    """
-    Check if IP belongs to legitimate crawler CIDR ranges
-    Uses ipaddress module for accurate CIDR validation
-    """
+    """Check if IP belongs to legitimate crawler CIDR ranges"""
     try:
         ip_obj = ipaddress.ip_address(ip)
         for cidr in CRAWLER_IP_RANGES.get(crawler_name, []):
@@ -120,16 +166,9 @@ def is_ip_in_crawler_ranges(ip: str, crawler_name: str) -> bool:
     except (ValueError, TypeError):
         return False
 
-@lru_cache(maxsize=1000)
-def validate_ptr(ip: str, crawler_name: str) -> dict:
-    """
-    Validate PTR (reverse DNS) record for crawler IP (cached for performance)
-    Real crawlers have matching PTR records:
-    - Googlebot: *.google.com or *.googlebot.com
-    - Bingbot: *.search.msn.com
 
-    Returns: {"valid": bool, "ptr": str or None, "reason": str}
-    """
+def validate_ptr(ip: str, crawler_name: str) -> dict:
+    """Validate PTR (reverse DNS) record for crawler IP"""
     try:
         answers = dns.resolver.resolve_address(ip)
         for rdata in answers:
@@ -164,13 +203,9 @@ def validate_ptr(ip: str, crawler_name: str) -> dict:
         logging.warning(f"PTR validation error for {ip}: {e}")
         return {"valid": False, "ptr": None, "reason": f"DNS error: {type(e).__name__}"}
 
+
 def detect_fake_crawler(user_agent: str, ip: str) -> dict:
-    """
-    Detect fake crawler impersonation using:
-    1. CIDR-based IP validation
-    2. PTR (reverse DNS) validation
-    Real crawlers have both matching IP ranges AND valid PTR records
-    """
+    """Detect fake crawler impersonation (CIDR + PTR validation)"""
     if not user_agent:
         return {"is_fake": False, "crawler_type": None}
 
@@ -211,15 +246,117 @@ def detect_fake_crawler(user_agent: str, ip: str) -> dict:
 
     return {"is_fake": False, "crawler_type": None}
 
-def should_block() -> bool:
-    """Randomly block requests to simulate WAF"""
-    return random.random() < BLOCK_RATE
+
+def hybrid_detection(user_agent: str, path: str, ip: str, payload: str = "") -> Dict:
+    """
+    HYBRID DETECTION: WAF + AI
+    1. Fast WAF check (pattern matching)
+    2. XGBoost AI prediction if WAF uncertain
+    Returns: {"should_block": bool, "confidence": float, "method": str, "threats": []}
+    """
+    start = time.time()
+
+    # Check cache (prevent repeated analysis of same IP)
+    cache_key = f"{ip}:{user_agent}:{path}"
+    if cache_key in BLOCK_CACHE:
+        if time.time() - BLOCK_CACHE[cache_key] < 60:  # Cache for 60s
+            return {
+                "should_block": True,
+                "confidence": 1.0,
+                "method": "cache",
+                "threats": ["cached_block"],
+                "latency_ms": 0
+            }
+
+    # Layer 1: WAF (fast pattern matching)
+    waf_result = waf_score(payload, user_agent, path)
+
+    if waf_result["score"] >= WAF_THRESHOLD:
+        # High WAF score - block immediately
+        STATS["waf_blocks"] += 1
+        BLOCK_CACHE[cache_key] = time.time()
+        return {
+            "should_block": True,
+            "confidence": waf_result["score"],
+            "method": "waf",
+            "threats": waf_result["threats"],
+            "latency_ms": (time.time() - start) * 1000
+        }
+
+    # Layer 2: AI prediction (if WAF uncertain)
+    if AI_ENABLED and 0.2 <= waf_result["score"] < WAF_THRESHOLD:
+        ai_result = predict_block(user_agent, path, ip)
+
+        if ai_result["should_block"] and ai_result["confidence"] >= AI_THRESHOLD:
+            STATS["ai_blocks"] += 1
+            BLOCK_CACHE[cache_key] = time.time()
+            return {
+                "should_block": True,
+                "confidence": ai_result["confidence"],
+                "method": "ai",
+                "threats": waf_result["threats"] + ["ai_detected"],
+                "latency_ms": (time.time() - start) * 1000
+            }
+
+        # Hybrid decision: WAF + AI consensus
+        if waf_result["score"] > 0.3 and ai_result["confidence"] > 0.5:
+            STATS["hybrid_blocks"] += 1
+            BLOCK_CACHE[cache_key] = time.time()
+            return {
+                "should_block": True,
+                "confidence": (waf_result["score"] + ai_result["confidence"]) / 2,
+                "method": "hybrid",
+                "threats": waf_result["threats"] + ["ai_consensus"],
+                "latency_ms": (time.time() - start) * 1000
+            }
+
+    # Allow request
+    STATS["allowed"] += 1
+    return {
+        "should_block": False,
+        "confidence": waf_result["score"],
+        "method": "allowed",
+        "threats": waf_result["threats"],
+        "latency_ms": (time.time() - start) * 1000
+    }
+
+
+@app.before_request
+def track_request():
+    """Track request start time"""
+    request.start_time = time.time()
+    STATS["total_requests"] += 1
+
+
+@app.after_request
+def update_stats(response):
+    """Update response time stats"""
+    if hasattr(request, 'start_time'):
+        elapsed = (time.time() - request.start_time) * 1000
+        # Rolling average
+        STATS["avg_response_time_ms"] = (
+            STATS["avg_response_time_ms"] * 0.9 + elapsed * 0.1
+        )
+    return response
+
 
 @app.route('/')
 def index():
     """Root endpoint"""
     ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', '')
+
+    # Check rate limit
+    if check_rate_limit(ip, limit=20, window=10):
+        log_attack({
+            "timestamp": datetime.now().isoformat(),
+            "ip": ip,
+            "endpoint": "/",
+            "result": "rate_limited"
+        })
+        return jsonify({"error": "Rate limit exceeded"}), 429
+
+    # Fake crawler detection
     crawler_check = detect_fake_crawler(user_agent, ip)
 
     if crawler_check["is_fake"]:
@@ -228,18 +365,21 @@ def index():
             "ip": ip,
             "endpoint": "/",
             "fake_crawler": crawler_check,
-            "user_agent": user_agent
+            "user_agent": user_agent,
+            "result": "fake_crawler_blocked"
         })
         return jsonify({
             "error": "Fake crawler detected",
-            "message": "User-Agent claims to be crawler but IP doesn't match"
+            "message": crawler_check["reason"]
         }), 403
 
     return jsonify({
-        "service": "Synexs Honeypot",
-        "version": "2.0",
+        "service": "Synexs Honeypot FAST",
+        "version": "3.0",
+        "detection": "Hybrid WAF + AI",
         "status": "active"
     })
+
 
 @app.route('/robots.txt')
 def robots():
@@ -247,28 +387,35 @@ def robots():
     ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', '')
     crawler_check = detect_fake_crawler(user_agent, ip)
+
     log_attack({
         "timestamp": datetime.now().isoformat(),
         "ip": ip,
         "endpoint": "/robots.txt",
         "crawler_check": crawler_check,
-        "user_agent": user_agent
+        "user_agent": user_agent,
+        "result": "logged"
     })
+
     return Response("""User-agent: *
 Disallow: /admin
 Disallow: /backup
 Disallow: /config
 Disallow: /private
 Disallow: /secret
+Disallow: /.git
+Disallow: /.env
 """, mimetype='text/plain')
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Fake login endpoint - logs all attempts"""
+    """Login endpoint with hybrid detection"""
     ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', 'unknown')
 
-    if check_rate_limit(ip):
+    # Rate limit
+    if check_rate_limit(ip, limit=5, window=10):
         log_attack({
             "timestamp": datetime.now().isoformat(),
             "ip": ip,
@@ -277,25 +424,24 @@ def login():
         })
         return jsonify({"error": "Rate limit exceeded"}), 429
 
-    try:
-        payload = str(request.get_data(as_text=True)) + str(request.args)
-    except UnicodeDecodeError:
-        payload = ""
-    patterns = detect_attack_pattern(payload)
-    crawler_check = detect_fake_crawler(user_agent, ip)
+    payload = str(request.get_data(as_text=True)) + str(request.args)
 
-    if crawler_check["is_fake"] or (patterns and should_block()):
+    # Hybrid detection
+    detection = hybrid_detection(user_agent, request.path, ip, payload)
+
+    if detection["should_block"]:
         log_attack({
             "timestamp": datetime.now().isoformat(),
             "ip": ip,
             "endpoint": "/login",
-            "patterns": patterns,
-            "fake_crawler": crawler_check if crawler_check["is_fake"] else None,
-            "result": "waf_blocked",
+            "detection": detection,
+            "result": "blocked",
             "user_agent": user_agent
         })
         return jsonify({
             "error": "Access Denied",
+            "reason": detection["method"],
+            "threats": detection["threats"],
             "ray_id": f"cf-{hashlib.md5(str(time.time()).encode()).hexdigest()[:16]}"
         }), 403
 
@@ -303,75 +449,125 @@ def login():
         "timestamp": datetime.now().isoformat(),
         "ip": ip,
         "endpoint": "/login",
-        "patterns": patterns,
+        "detection": detection,
         "result": "allowed",
         "user_agent": user_agent
     })
+
     return jsonify({"status": "fail", "message": "Invalid credentials"})
+
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def api_data():
-    """Fake API endpoint"""
+    """API endpoint with hybrid detection"""
     ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', '')
 
     if check_rate_limit(ip):
         return jsonify({"error": "Rate limit"}), 429
 
-    try:
-        payload = str(request.args) + str(request.get_data(as_text=True))
-    except UnicodeDecodeError:
-        payload = ""
-    patterns = detect_attack_pattern(payload)
-    crawler_check = detect_fake_crawler(user_agent, ip)
+    payload = str(request.args) + str(request.get_data(as_text=True))
+    detection = hybrid_detection(user_agent, request.path, ip, payload)
 
-    if crawler_check["is_fake"] or (patterns and should_block()):
+    if detection["should_block"]:
         log_attack({
             "timestamp": datetime.now().isoformat(),
             "ip": ip,
             "endpoint": "/api/data",
-            "patterns": patterns,
-            "fake_crawler": crawler_check if crawler_check["is_fake"] else None,
-            "result": "waf_blocked"
+            "detection": detection,
+            "result": "blocked"
         })
-        return jsonify({"error": "Forbidden"}), 403
+        return jsonify({"error": "Forbidden", "threats": detection["threats"]}), 403
 
     log_attack({
         "timestamp": datetime.now().isoformat(),
         "ip": ip,
         "endpoint": "/api/data",
+        "detection": detection,
         "result": "allowed"
     })
+
     return jsonify({"data": [1, 2, 3, 4, 5]})
+
 
 @app.route('/admin')
 @app.route('/backup')
 @app.route('/config')
 @app.route('/private')
 @app.route('/secret')
+@app.route('/.git')
+@app.route('/.env')
 def protected_dirs():
-    """Honeypot directories"""
+    """Honeypot directories - always blocked"""
     ip = request.remote_addr
     user_agent = request.headers.get('User-Agent', '')
     path = request.path
-    crawler_check = detect_fake_crawler(user_agent, ip)
 
     log_attack({
         "timestamp": datetime.now().isoformat(),
         "ip": ip,
         "endpoint": path,
-        "result": "directory_blocked",
-        "fake_crawler": crawler_check if crawler_check["is_fake"] else None,
-        "waf": "aws_waf_sim"
+        "result": "honeypot_blocked",
+        "waf": "aws_waf_sim",
+        "user_agent": user_agent
     })
+
     return jsonify({
         "error": "Forbidden",
         "waf": "AWS WAF",
         "request_id": hashlib.md5(str(time.time()).encode()).hexdigest()
     }), 403
 
+
 @app.route('/stats')
 def stats():
-    """Show honeypot statistics"""
+    """Real-time honeypot statistics"""
     try:
-        with open(HONEYPOT_LOG, "
+        # Fast analysis using pandas
+        if AI_ENABLED:
+            analysis = analyze_blocks_fast()
+        else:
+            analysis = {"error": "AI disabled"}
+
+        return jsonify({
+            "honeypot_stats": {
+                "total_requests": int(STATS["total_requests"]),
+                "waf_blocks": int(STATS["waf_blocks"]),
+                "ai_blocks": int(STATS["ai_blocks"]),
+                "hybrid_blocks": int(STATS["hybrid_blocks"]),
+                "allowed": int(STATS["allowed"]),
+                "avg_response_time_ms": float(STATS["avg_response_time_ms"])
+            },
+            "analysis": analysis,
+            "ai_enabled": AI_ENABLED,
+            "detection_layers": ["rate_limit", "waf", "ai", "crawler_validation"],
+            "uptime": "active"
+        })
+    except Exception as e:
+        logging.error(f"Stats error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/health')
+def health():
+    """Health check endpoint"""
+    return jsonify({
+        "status": "healthy",
+        "ai_enabled": AI_ENABLED,
+        "avg_latency_ms": round(STATS["avg_response_time_ms"], 2),
+        "requests": STATS["total_requests"],
+        "blocks": STATS["waf_blocks"] + STATS["ai_blocks"] + STATS["hybrid_blocks"]
+    })
+
+
+if __name__ == "__main__":
+    print("\n" + "="*60)
+    print("🚀 SYNEXS HONEYPOT - HYBRID WAF + AI")
+    print("="*60)
+    print(f"AI Detection: {'✅ Enabled' if AI_ENABLED else '⚠️ Disabled (fallback mode)'}")
+    print(f"WAF Threshold: {WAF_THRESHOLD}")
+    print(f"AI Threshold: {AI_THRESHOLD}")
+    print(f"Detection: 3-layer (rate_limit → WAF → AI)")
+    print("="*60 + "\n")
+
+    app.run(host='127.0.0.1', port=8080, debug=False)

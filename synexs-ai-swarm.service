@@ -1,0 +1,16 @@
+[Unit]
+Description=Synexs AI Swarm
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/synexs
+ExecStart=/usr/bin/python3 /root/synexs/ai_swarm_fixed.py
+Restart=on-failure
+RestartSec=300
+StandardOutput=append:/var/log/synexs-ai-swarm.log
+StandardError=append:/var/log/synexs-ai-swarm.log
+
+[Install]
+WantedBy=multi-user.target

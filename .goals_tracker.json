@@ -1,0 +1,93 @@
+{
+  "goals": {
+    "weekly": {
+      "missions_generated": {
+        "target": 5000,
+        "description": "Generate 5,000 training missions per week",
+        "unit": "missions",
+        "priority": "high"
+      },
+      "dataset_growth_mb": {
+        "target": 100,
+        "description": "Grow datasets by 100MB per week",
+        "unit": "MB",
+        "priority": "medium"
+      },
+      "gpu_training_runs": {
+        "target": 2,
+        "description": "Run GPU training at least 2 times per week",
+        "unit": "runs",
+        "priority": "high"
+      },
+      "honeypot_attacks": {
+        "target": 1000,
+        "description": "Collect 1,000 honeypot attacks per week",
+        "unit": "attacks",
+        "priority": "medium"
+      },
+      "model_accuracy": {
+        "target": 85,
+        "description": "Maintain model accuracy above 85%",
+        "unit": "%",
+        "priority": "high"
+      }
+    },
+    "monthly": {
+      "total_missions": {
+        "target": 20000,
+        "description": "Generate 20,000 total missions per month",
+        "unit": "missions",
+        "priority": "high"
+      },
+      "dataset_size_gb": {
+        "target": 1,
+        "description": "Reach 1GB total dataset size",
+        "unit": "GB",
+        "priority": "medium"
+      },
+      "model_versions": {
+        "target": 4,
+        "description": "Create 4 model versions per month (weekly retraining)",
+        "unit": "versions",
+        "priority": "high"
+      },
+      "system_uptime": {
+        "target": 99,
+        "description": "Maintain 99% system uptime",
+        "unit": "%",
+        "priority": "high"
+      },
+      "documentation_updates": {
+        "target": 2,
+        "description": "Update documentation at least twice per month",
+        "unit": "updates",
+        "priority": "low"
+      }
+    }
+  },
+  "current_week": {
+    "start_date": "2025-11-13T04:28:27.079468",
+    "progress": {
+      "missions_generated": 300032,
+      "dataset_growth_mb": 60.27,
+      "gpu_training_runs": 0,
+      "honeypot_attacks": 16,
+      "model_accuracy": 0
+    }
+  },
+  "current_month": {
+    "start_date": "2025-11-13T04:28:27.079488",
+    "progress": {
+      "total_missions": 300032,
+      "dataset_size_gb": 0.06,
+      "model_versions": 0,
+      "system_uptime": 0,
+      "documentation_updates": 0
+    }
+  },
+  "history": {
+    "weekly": [],
+    "monthly": []
+  },
+  "last_reminder": null
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Synexs Core Orchestrator (Optimized)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/synexs
+ExecStart=/usr/bin/python3 /root/synexs/synexs_core_orchestrator.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/var/log/synexs-orchestrator.log
+StandardError=append:/var/log/synexs-orchestrator.log
+
+[Install]
+WantedBy=multi-user.target

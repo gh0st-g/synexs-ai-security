@@ -428,4 +428,109 @@ def flag_weakness(kill_data: pd.Series):
     try:
         if WEAKNESS_FILE.exists():
             with open(WEAKNESS_FILE, 'r') as f:
-                weaknesses
+                weaknesses = json.load(f)
+        else:
+            weaknesses = {"weaknesses": []}
+
+        weakness = {
+            "agent_id": kill_data.get('agent_id'),
+            "survived_seconds": kill_data.get('survived_seconds'),
+            "timestamp": datetime.now().isoformat(),
+            "severity": "high" if kill_data.get('survived_seconds', 0) > 120 else "medium",
+            "action": "improve_detection"
+        }
+        weaknesses["weaknesses"].append(weakness)
+
+        with open(WEAKNESS_FILE, 'w') as f:
+            json.dump(weaknesses, f, indent=2)
+
+        print(f"  🚨 Flagged weakness: agent survived {kill_data.get('survived_seconds')}s")
+
+    except Exception as e:
+        print(f"  ⚠️ Weakness flagging error: {e}")
+
+
+def start_realtime_watcher():
+    """Start real-time file watcher for kill logs"""
+    try:
+        event_handler = KillFileWatcher(callback=on_kill_file_change)
+        observer = Observer()
+        observer.schedule(event_handler, str(KILLS_FILE.parent), recursive=False)
+        observer.start()
+        print(f"👁️ Watching: {KILLS_FILE}")
+        return observer
+    except Exception as e:
+        print(f"⚠️ Watcher start error: {e}")
+        return None
+
+
+def benchmark():
+    """Benchmark speed improvements"""
+    print("\n" + "="*60)
+    print("⚡ DEFENSIVE ENGINE BENCHMARK")
+    print("="*60)
+
+    # Test 1: Load attacks
+    start = time.time()
+    df = load_attacks_fast()
+    elapsed = time.time() - start
+    print(f"✅ Load attacks: {len(df)} rows in {elapsed*1000:.1f}ms")
+
+    # Test 2: Analyze blocks
+    start = time.time()
+    analysis = analyze_blocks_fast()
+    elapsed = time.time() - start
+    print(f"✅ Analyze blocks: {elapsed*1000:.1f}ms")
+    print(f"   - Total attacks: {analysis.get('total_attacks', 0)}")
+    print(f"   - Block rate: {analysis.get('block_rate', 0):.1f}%")
+    print(f"   - Crawler blocks: {analysis.get('crawler_block_rate', 0):.1f}%")
+
+    # Test 3: Load kills
+    start = time.time()
+    df_kills = load_kills_fast()
+    elapsed = time.time() - start
+    print(f"✅ Load kills: {len(df_kills)} rows in {elapsed*1000:.1f}ms")
+
+    # Test 4: Train model
+    if not df.empty:
+        start = time.time()
+        model = build_xgboost_model()
+        elapsed = time.time() - start
+        if model:
+            print(f"✅ Train XGBoost: {elapsed*1000:.1f}ms")
+
+        # Test 5: Inference speed
+        if model:
+            start = time.time()
+            for _ in range(100):
+                predict_block("Mozilla/5.0", "/admin", "1.2.3.4")
+            elapsed = time.time() - start
+            print(f"✅ Inference: {elapsed*10:.2f}ms per 100 predictions ({elapsed*1000/100:.2f}ms each)")
+
+    print("="*60)
+
+
+if __name__ == "__main__":
+    print("🚀 SYNEXS DEFENSIVE ENGINE - FAST MODE\n")
+
+    # Run benchmark
+    benchmark()
+
+    # Start real-time watcher
+    print("\n⚡ Starting real-time watcher...")
+    observer = start_realtime_watcher()
+
+    if observer:
+        print("✅ Defensive engine running")
+        print("   - Watching for new kills")
+        print("   - Auto-retraining on updates")
+        print("   - XGBoost inference: <5ms")
+        print("\nPress Ctrl+C to stop\n")
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+            observer.join()
+            print("\n⛔ Stopped")
