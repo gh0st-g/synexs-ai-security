@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Synexs - Attack Log{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Last 100 Attacks</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>IP</th>
+                <th>Country</th>
+                <th>CVEs</th>
+                <th>Ports</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody id="attacks-tbody">
+            <tr>
+                <td colspan="7" class="loading">Loading attacks</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <button id="prev-btn" style="padding: 8px 16px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">Previous</button>
+        <span id="page-info" style="margin: 0 20px; color: var(--text-muted);">Page 1</span>
+        <button id="next-btn" style="padding: 8px 16px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">Next</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPage = 1;
+    let totalPages = 1;
+
+    async function loadAttacks(page = 1) {
+        try {
+            const response = await fetch(`/api/attacks-table?page=${page}&per_page=100`);
+            const data = await response.json();
+
+            currentPage = data.page;
+            totalPages = data.total_pages;
+
+            const tbody = document.getElementById('attacks-tbody');
+            tbody.innerHTML = data.attacks.map(attack => {
+                const timestamp = new Date(attack.timestamp).toLocaleString();
+                const vulns = attack.vulns.length > 0 ? attack.vulns.slice(0, 2).join(', ') : '-';
+                const ports = attack.open_ports.length > 0 ? attack.open_ports.slice(0, 5).join(', ') : '-';
+                const severityClass = `badge badge-${attack.severity}`;
+
+                return `
+                    <tr>
+                        <td>${attack.id}</td>
+                        <td>${timestamp}</td>
+                        <td>${attack.ip}</td>
+                        <td>${attack.country || 'Unknown'}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${vulns}</td>
+                        <td>${ports}</td>
+                        <td><span class="${severityClass}">${attack.severity}</span></td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="7">No attacks found</td></tr>';
+
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prev-btn').disabled = currentPage === 1;
+            document.getElementById('next-btn').disabled = currentPage === totalPages;
+
+        } catch (error) {
+            console.error('Error loading attacks:', error);
+            document.getElementById('attacks-tbody').innerHTML = '<tr><td colspan="7">Error loading data</td></tr>';
+        }
+    }
+
+    // Pagination
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentPage > 1) loadAttacks(currentPage - 1);
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+        if (currentPage < totalPages) loadAttacks(currentPage + 1);
+    });
+
+    // Initial load
+    loadAttacks(1);
+
+    // Auto-refresh every 10 seconds
+    setInterval(() => loadAttacks(currentPage), 10000);
+</script>
+{% endblock %}

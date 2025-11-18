@@ -1,3 +1,5 @@
+# ~/synexs/listener.py
+from utils.telegram_notify import send_telegram
 import logging
 import logging.handlers
 import time
@@ -9,179 +11,242 @@ import json
 import threading
 from datetime import datetime
 from typing import Optional
-from contextlib import suppress
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# PID file for singleton enforcement
+# --- External Intel ---
+try:
+    from utils.external_intel import shodan_lookup, nmap_scan
+    from binary_protocol import encode_base64
+    INTEL_AVAILABLE = True
+except Exception as e:
+    logging.warning(f"Intel module not available: {e}. Running in basic mode.")
+    INTEL_AVAILABLE = False
+
+# --- Database ---
+try:
+    from db.database import get_db
+    from db.models import Attack
+    DATABASE_AVAILABLE = True
+except Exception as e:
+    logging.warning(f"Database module not available: {e}. Falling back to JSONL.")
+    DATABASE_AVAILABLE = False
+
+# PID & Logging
 PID_FILE = '/tmp/listener.pid'
 lock_fp = None
-
-# Set up logging with rotation
-handler = logging.handlers.RotatingFileHandler(
-    'listener.log',
-    maxBytes=10 * 1024 * 1024,  # 10MB
-    backupCount=5
-)
-handler.setFormatter(logging.Formatter(
-    '%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-))
+handler = logging.handlers.RotatingFileHandler('listener.log', maxBytes=10*1024*1024, backupCount=5)
+handler.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
 logging.basicConfig(handlers=[handler], level=logging.INFO)
 
-# Global variables
+# Stats
 running = True
-message_count = 0
-error_count = 0
-start_time = datetime.now()
-last_message_time = None
+message_count = error_count = intel_hits = training_samples_added = 0
+start_time = last_message_time = datetime.now()
+processed_ips = set()
+intel_cache_dir = "/tmp/synexs_intel_cache"
+os.makedirs(intel_cache_dir, exist_ok=True)
 
-# Health endpoint
+# Health Endpoint
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/health':
             uptime = (datetime.now() - start_time).total_seconds()
-            health_data = {
+            data = {
                 'status': 'healthy' if running else 'shutting_down',
                 'uptime_seconds': uptime,
                 'messages_processed': message_count,
                 'errors': error_count,
                 'last_message': last_message_time.isoformat() if last_message_time else None,
-                'pid': os.getpid()
+                'pid': os.getpid(),
+                'intel_hits': intel_hits,
+                'training_samples_added': training_samples_added,
+                'processed_ips': len(processed_ips)
             }
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps(health_data, indent=2).encode())
+            self.wfile.write(json.dumps(data, indent=2).encode())
         else:
             self.send_response(404)
             self.end_headers()
-
-    def log_message(self, format, *args):
-        pass  # Suppress HTTP logs
+    def log_message(self, *args): pass
 
 def start_health_server():
-    """Start health check HTTP server on port 8765 in background thread"""
     try:
-        server = HTTPServer(('0.0.0.0', 8765), HealthHandler)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
-        logging.info('Health endpoint started on http://0.0.0.0:8765/health')
+        HTTPServer(('0.0.0.0', 8765), HealthHandler).serve_forever()
     except Exception as e:
-        logging.warning(f'Could not start health endpoint: {e}')
+        logging.warning(f"Health server failed: {e}")
 
+# PID Lock
 def acquire_pid_lock():
-    """Acquire exclusive PID lock to ensure only one instance runs"""
     global lock_fp
     try:
         lock_fp = open(PID_FILE, 'x')
         fcntl.flock(lock_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
         lock_fp.write(str(os.getpid()))
         lock_fp.flush()
-        logging.info(f'Acquired PID lock: {os.getpid()}')
         return True
     except IOError:
-        logging.error("Another listener instance is already running!")
-        logging.error(f"Check PID file: {PID_FILE}")
+        logging.error("Another instance is running!")
         return False
 
 def release_pid_lock():
-    """Release PID lock and remove PID file"""
     global lock_fp
     if lock_fp:
         try:
             fcntl.flock(lock_fp, fcntl.LOCK_UN)
             lock_fp.close()
             os.remove(PID_FILE)
-            logging.info('Released PID lock')
-        except Exception as e:
-            logging.warning(f'Error releasing PID lock: {e}')
+        except: pass
 
+# Signal Handling
 def signal_handler(sig, frame):
     global running
-    logging.info('Received shutdown signal, stopping listener...')
+    logging.info("Shutting down...")
     running = False
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
-try:
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-except (ValueError, RuntimeError):
-    pass
+# --- MAIN ENRICHMENT & ALERT ---
+def enrich_and_train(ip: str):
+    global intel_hits, training_samples_added
+    if not INTEL_AVAILABLE or ip in processed_ips:
+        return
 
+    cache_file = os.path.join(intel_cache_dir, f"{ip}.json")
+    intel = None
+
+    # Load from cache or fetch
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file) as f:
+                intel = json.load(f)
+        except: pass
+
+    if intel is None:
+        try:
+            logging.info(f"Enriching IP: {ip}")
+            intel = {"ip": ip, "timestamp": int(datetime.now().timestamp())}
+            intel.update(shodan_lookup(ip))
+            intel.update({"nmap": nmap_scan(ip, quick=True)})
+            with open(cache_file, "w") as f:
+                json.dump(intel, f)
+        except Exception as e:
+            logging.error(f"Enrichment failed for {ip}: {e}")
+            return
+
+    # Generate training sample if CVE found
+    vulns = intel.get("vulns", []) or []
+    if vulns:
+        actions = ["SCAN", "VULN", "EXPLOIT"]
+        binary = encode_base64(actions)
+
+        # Prepare data
+        instruction = f"Host {ip} has vuln {vulns[0]}"
+        output = f"Execute: {' → '.join(actions)}"
+
+        # Save to PostgreSQL (preferred) or JSONL (fallback)
+        if DATABASE_AVAILABLE:
+            try:
+                with get_db() as db:
+                    attack = Attack(
+                        ip=ip,
+                        timestamp=datetime.fromtimestamp(intel["timestamp"]),
+                        vulns=vulns,
+                        open_ports=intel.get("open_ports", []),
+                        country=intel.get("country"),
+                        country_code=intel.get("country_code"),
+                        city=intel.get("city"),
+                        latitude=intel.get("latitude"),
+                        longitude=intel.get("longitude"),
+                        actions=actions,
+                        binary_input=binary,
+                        protocol="v3",
+                        format="base64",
+                        instruction=instruction,
+                        output=output,
+                        source="shodan_nmap",
+                        org=intel.get("org"),
+                        isp=intel.get("isp"),
+                        asn=intel.get("asn"),
+                        is_threat=True,
+                        severity="high" if len(vulns) > 2 else "medium"
+                    )
+                    db.add(attack)
+                    db.commit()
+                logging.info(f"Attack saved to DB: {ip} → {vulns[0]}")
+            except Exception as e:
+                logging.error(f"Database write failed: {e}, falling back to JSONL")
+                # Fallback to JSONL
+                sample = {
+                    "instruction": instruction,
+                    "input": f"binary:{binary}",
+                    "output": output,
+                    "actions": actions,
+                    "protocol": "v3",
+                    "format": "base64",
+                    "source": "shodan_nmap",
+                    "timestamp": intel["timestamp"]
+                }
+                with open("training_binary_v3.jsonl", "a") as f:
+                    f.write(json.dumps(sample) + "\n")
+        else:
+            # JSONL fallback
+            sample = {
+                "instruction": instruction,
+                "input": f"binary:{binary}",
+                "output": output,
+                "actions": actions,
+                "protocol": "v3",
+                "format": "base64",
+                "source": "shodan_nmap",
+                "timestamp": intel["timestamp"]
+            }
+            with open("training_binary_v3.jsonl", "a") as f:
+                f.write(json.dumps(sample) + "\n")
+
+        training_samples_added += 1
+        logging.info(f"Training sample added: {ip} → {vulns[0]}")
+
+    # --- TELEGRAM ALERT ---
+    notify_details = {"vulns": vulns, "open_ports": intel.get("open_ports", [])}
+    send_telegram(ip, notify_details)
+
+    intel_hits += 1
+    processed_ips.add(ip)
+
+# --- Redis Listener ---
 def listen():
     global message_count, error_count, last_message_time
+    import redis
+    r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+    r.ping()
+
     while running:
         try:
-            # Listen for messages
-            message = receive_message()
-            if message:
-                process_message(message)
+            msg = r.blpop('agent_tasks', timeout=5)
+            if msg:
+                data = json.loads(msg[1])
+                src_ip = data.get("source_ip") or data.get("ip")
+                if src_ip:
+                    threading.Thread(target=enrich_and_train, args=(src_ip,), daemon=True).start()
+                logging.info(f"Processed: {msg[1]}")
                 message_count += 1
                 last_message_time = datetime.now()
         except Exception as e:
             error_count += 1
-            logging.error(f'Error processing message: {e}', exc_info=True)
-            time.sleep(5)  # Avoid busy loop and retry after 5 seconds
+            logging.error(f"Error: {e}")
 
-    logging.info(f'Listener stopped. Total messages processed: {message_count}')
-
-def receive_message() -> Optional[str]:
-    """
-    Receive message from Redis queue with blocking pop (efficient, <1% CPU idle)
-    Uses BLPOP with 5s timeout - returns None if no message, waits efficiently
-    """
-    try:
-        import redis
-        # Lazy connection on first call
-        if not hasattr(receive_message, 'redis_client'):
-            receive_message.redis_client = redis.Redis(
-                host='localhost',
-                port=6379,
-                decode_responses=True,
-                socket_keepalive=True,
-                socket_connect_timeout=2
-            )
-            receive_message.redis_client.ping()  # Test connection
-            logging.info('Connected to Redis on localhost:6379')
-
-        # BLPOP blocks efficiently until message arrives (or 5s timeout)
-        # This is the key: uses ~0% CPU when idle, unlike tight loop
-        result = receive_message.redis_client.blpop('agent_tasks', timeout=5)
-
-        if result:
-            queue_name, message = result
-            return message
-        return None  # No message in 5 seconds, loop continues efficiently
-
-    except redis.ConnectionError:
-        logging.warning('Redis not available, falling back to sleep')
-        time.sleep(5)  # Fallback: sleep if Redis is down
-        return None
-    except Exception as e:
-        logging.error(f'Error receiving message: {e}')
-        time.sleep(5)
-        return None
-
-def process_message(message: str):
-    # Implement message processing logic here
-    logging.info(f'Processed message: {message}')
-
+# --- Main ---
 def main():
-    # Ensure only one instance runs
-    if not acquire_pid_lock():
-        return
-
+    if not acquire_pid_lock(): return
+    threading.Thread(target=start_health_server, daemon=True).start()
     try:
-        logging.info('Starting listener...')
-        start_health_server()  # Start health endpoint on port 8765
+        logging.info("Synexs Listener STARTED")
         listen()
-    except (KeyboardInterrupt, SystemExit):
-        logging.info('Received shutdown signal, stopping listener...')
-    except Exception as e:
-        logging.error(f'Unhandled exception: {e}', exc_info=True)
-        sys.exit(1)
     finally:
         release_pid_lock()
-        logging.info('Listener stopped.')
+        logging.info("Listener stopped")
 
 if __name__ == '__main__':
     main()

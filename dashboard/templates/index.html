@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Synexs - Attack Map{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Real-Time Attack Map</div>
+    <div id="map"></div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value" id="live-attacks">0</div>
+        <div class="stat-label">Active Threats</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="live-countries">0</div>
+        <div class="stat-label">Countries</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="live-vulns">0</div>
+        <div class="stat-label">CVEs Detected</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize map
+    const map = L.map('map', {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 2,
+        maxZoom: 10
+    });
+
+    // Dark tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19
+    }).addTo(map);
+
+    let markers = [];
+
+    // Load attack data
+    async function loadMapData() {
+        try {
+            const response = await fetch('/api/map-data');
+            const data = await response.json();
+
+            // Clear old markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            // Track stats
+            const countries = new Set();
+            let totalVulns = 0;
+
+            // Add markers
+            data.forEach(attack => {
+                if (attack.lat && attack.lon) {
+                    const color = getSeverityColor(attack.severity);
+
+                    const marker = L.circleMarker([attack.lat, attack.lon], {
+                        radius: 6,
+                        fillColor: color,
+                        color: color,
+                        weight: 1,
+                        opacity: 0.8,
+                        fillOpacity: 0.6
+                    }).addTo(map);
+
+                    // Popup
+                    const vulnsList = attack.vulns.length > 0
+                        ? attack.vulns.slice(0, 3).join(', ')
+                        : 'No CVEs';
+
+                    marker.bindPopup(`
+                        <div style="color: #0a0e27; font-family: monospace;">
+                            <strong>IP:</strong> ${attack.ip}<br>
+                            <strong>Country:</strong> ${attack.country}<br>
+                            <strong>City:</strong> ${attack.city || 'Unknown'}<br>
+                            <strong>CVEs:</strong> ${vulnsList}<br>
+                            <strong>Severity:</strong> <span style="color: ${color};">${attack.severity}</span><br>
+                            <strong>Ports:</strong> ${attack.open_ports.slice(0, 5).join(', ')}
+                        </div>
+                    `);
+
+                    markers.push(marker);
+
+                    // Update stats
+                    if (attack.country) countries.add(attack.country);
+                    totalVulns += attack.vulns.length;
+                }
+            });
+
+            // Update live stats
+            document.getElementById('live-attacks').textContent = data.length;
+            document.getElementById('live-countries').textContent = countries.size;
+            document.getElementById('live-vulns').textContent = totalVulns;
+
+        } catch (error) {
+            console.error('Error loading map data:', error);
+        }
+    }
+
+    function getSeverityColor(severity) {
+        switch (severity) {
+            case 'critical': return '#ff0033';
+            case 'high': return '#ffaa00';
+            case 'medium': return '#00aaff';
+            default: return '#6b7280';
+        }
+    }
+
+    // Initial load
+    loadMapData();
+
+    // Auto-refresh every 10 seconds
+    setInterval(loadMapData, 10000);
+</script>
+{% endblock %}
