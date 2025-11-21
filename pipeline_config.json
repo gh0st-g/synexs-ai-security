@@ -1,0 +1,61 @@
+{
+  "processes": [
+    {
+      "name": "synexs_core_orchestrator",
+      "script": "/root/synexs/synexs_core_orchestrator.py",
+      "python": "/usr/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": [],
+      "enabled": true,
+      "health_check": null
+    },
+    {
+      "name": "listener",
+      "script": "listener",
+      "python": "/usr/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": ["-m", "listener"],
+      "enabled": true,
+      "health_check": {
+        "type": "http",
+        "url": "http://localhost:8765/health",
+        "expect_key": "status",
+        "expect_value": "healthy"
+      }
+    },
+    {
+      "name": "ai_swarm_fixed",
+      "script": "/root/synexs/ai_swarm_fixed.py",
+      "python": "/root/synexs/synexs_env/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": ["-u"],
+      "enabled": true,
+      "health_check": null
+    },
+    {
+      "name": "honeypot_server",
+      "script": "/root/synexs/honeypot_server.py",
+      "python": "/root/synexs/synexs_env/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": [],
+      "enabled": true,
+      "health_check": {
+        "type": "http",
+        "url": "http://127.0.0.1:8080/health",
+        "expect_key": "status",
+        "expect_value": "healthy"
+      }
+    }
+  ],
+  "services": [
+    {
+      "name": "redis",
+      "type": "system",
+      "health_check": {
+        "type": "redis",
+        "command": "redis-cli ping",
+        "expect": "PONG"
+      }
+    }
+  ]
+}
