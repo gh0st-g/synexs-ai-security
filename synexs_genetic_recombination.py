@@ -38,12 +38,12 @@ class GeneticRecombinator:
     Combines genetic material from two successful parents
     """
 
-    def __init__(self, mutation_rate=0.05):
+    def __init__(self, mutation_rate=0.05, fitness_threshold=0.6):
         self.mutation_rate = mutation_rate
+        self.fitness_threshold = fitness_threshold
         self.gene_pool = {}  # agent_id -> GeneticProfile
         self.generation = 0
         self.population_history = []
-        self.fitness_threshold = 0.6  # Minimum fitness to reproduce
 
     def register_agent(self, agent_id: str, genome: List[str],
                       parent_ids: List[str] = None, fitness: float = 0.5):
@@ -163,14 +163,12 @@ class GeneticRecombinator:
 
         elif method == 'uniform':
             # Each gene randomly from either parent
-            offspring = []
-            for i in range(min_len):
-                offspring.append(random.choice([genome1[i], genome2[i]]))
+            offspring = [random.choice([g1, g2]) for g1, g2 in zip(genome1, genome2)]
             # Add remaining genes from longer parent
             if len(genome1) > len(genome2):
-                offspring.extend(genome1[min_len:])
+                offspring.extend(genome1[len(genome2):])
             else:
-                offspring.extend(genome2[min_len:])
+                offspring.extend(genome2[len(genome1):])
 
         else:
             raise ValueError(f"Unknown crossover method: {method}")
@@ -363,10 +361,12 @@ class GeneticRecombinator:
             'population_history': self.population_history
         }
 
-        with open(filepath, 'w') as f:
-            json.dump(export_data, f, indent=2)
-
-        print(f"✅ Gene pool exported to {filepath}")
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(export_data, f, indent=2)
+            print(f"✅ Gene pool exported to {filepath}")
+        except (IOError, OSError) as e:
+            print(f"❌ Error exporting gene pool: {e}")
 
     def get_population_report(self) -> str:
         """Generate human-readable population report"""
@@ -407,78 +407,31 @@ TRAIT DISTRIBUTION (Population Averages):
 MOST FIT AGENT:
   ID: {best_agent_id}
   Fitness: {best_agent.fitness_score:.3f}
-  Generation: {best_agent.generation}
-  Age: {best_agent.age}
-  Genome Length: {len(best_agent.genome)}
-  Parents: {', '.join(best_agent.parent_ids) if best_agent.parent_ids else 'Genesis'}
-
-  Dominant Traits:
+  Age: {best_agent.age} generations
+  Traits:
 """
-        for trait, value in sorted(best_agent.traits.items(), key=lambda x: x[1], reverse=True)[:3]:
-            report += f"    • {trait}: {value:.3f}\n"
+
+        for trait, value in best_agent.traits.items():
+            report += f"    {trait:15s}: {value:.3f}\n"
+
+        report += "\n" + "═" * 60 + "\n"
 
         return report
 
+    def _calculate_population_traits(self) -> dict:
+        """Calculate average trait values across population"""
+        if not self.gene_pool:
+            return {}
 
-if __name__ == "__main__":
-    # Example usage and testing
-    print("🧬 Synexs Genetic Recombination System")
-    print("=" * 60)
+        trait_sums = {}
+        trait_counts = {}
 
-    # Initialize recombinator
-    recombinator = GeneticRecombinator(mutation_rate=0.05)
+        for profile in self.gene_pool.values():
+            for trait, value in profile.traits.items():
+                trait_sums[trait] = trait_sums.get(trait, 0.0) + value
+                trait_counts[trait] = trait_counts.get(trait, 0) + 1
 
-    # Create initial population (Genesis generation)
-    print("\n📍 Creating Genesis Generation...")
-    genesis_genomes = [
-        ['SCAN', 'ATTACK', 'REPLICATE'],
-        ['EVADE', 'LEARN', 'DEFEND'],
-        ['SCAN', 'ENCRYPT', 'REPORT'],
-        ['ATTACK', 'LEARN', 'MUTATE']
-    ]
-
-    genesis_agents = []
-    for i, genome in enumerate(genesis_genomes):
-        agent = recombinator.register_agent(
-            agent_id=f"genesis_{i}",
-            genome=genome,
-            fitness=random.uniform(0.5, 0.9)
-        )
-        genesis_agents.append(agent.agent_id)
-        print(f"  ✓ {agent.agent_id}: {' → '.join(genome)}")
-
-    # Simulate evolution
-    print("\n🔬 Evolving Generation 1...")
-    gen1 = recombinator.evolve_generation(num_offspring=6)
-
-    for offspring in gen1:
-        print(f"\n  Offspring: {offspring.agent_id}")
-        print(f"    Parents: {', '.join(offspring.parent_ids)}")
-        print(f"    Genome: {' → '.join(offspring.genome)}")
-        print(f"    Dominant trait: {max(offspring.traits.items(), key=lambda x: x[1])}")
-
-    # Update fitness based on "mission results"
-    print("\n📊 Simulating mission results...")
-    for offspring in gen1:
-        # Random fitness update
-        delta = random.uniform(-0.1, 0.3)
-        recombinator.update_fitness(offspring.agent_id, delta)
-        print(f"  {offspring.agent_id}: Fitness {offspring.fitness_score:.3f}")
-
-    # Evolve another generation
-    print("\n🔬 Evolving Generation 2...")
-    gen2 = recombinator.evolve_generation(num_offspring=8)
-
-    # Print population report
-    print(recombinator.get_population_report())
-
-    # Show family tree of best agent
-    best_id = max(recombinator.gene_pool.keys(),
-                 key=lambda x: recombinator.gene_pool[x].fitness_score)
-    print(f"\n🌳 Family Tree of Best Agent ({best_id}):")
-    print(json.dumps(recombinator.get_family_tree(best_id, depth=2), indent=2))
-
-    # Export gene pool
-    recombinator.export_gene_pool('/root/synexs/gene_pool_export.json')
-
-    print("\n✅ Genetic recombination system demonstration complete!")
+        return {
+            trait: trait_sums[trait] / trait_counts[trait]
+            for trait in trait_sums
+        }

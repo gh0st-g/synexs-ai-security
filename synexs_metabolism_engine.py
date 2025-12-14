@@ -24,7 +24,7 @@ class ResourceType(Enum):
     MEMORY = "memory"           # RAM/storage
     BANDWIDTH = "bandwidth"     # Network capacity
     ATTENTION = "attention"     # Focus/priority
-    TIME = "time"              # Execution time budget
+    TIME = "time"               # Execution time budget
 
 class MetabolicState(Enum):
     """Current metabolic state of organism"""
@@ -43,6 +43,17 @@ class ResourcePool:
     regeneration_rate: float    # How fast it replenishes
     consumption_rate: float     # Current usage rate
     critical_threshold: float   # Alert level (0.0-1.0)
+
+    @property
+    def percentage(self) -> float:
+        """Get current resource level as percentage"""
+        return (self.current / self.maximum * 100) if self.maximum > 0 else 0.0
+
+    @property
+    def critical(self) -> bool:
+        """Check if resource level is below critical threshold"""
+        current_ratio = self.current / self.maximum if self.maximum > 0 else 0.0
+        return current_ratio < self.critical_threshold
 
 @dataclass
 class MetabolicProcess:
@@ -391,115 +402,9 @@ class MetabolismEngine:
             }
         }
 
-        with open(filepath, 'w') as f:
-            json.dump(export_data, f, indent=2)
-
-        print(f"✅ Metabolic state exported to {filepath}")
-
-
-if __name__ == "__main__":
-    # Example usage
-    print("⚡ Synexs Metabolism Engine")
-    print("=" * 60)
-
-    # Initialize metabolism
-    metabolism = MetabolismEngine()
-
-    print("\n📊 Initial Resource Status:")
-    status = metabolism.get_resource_status()
-    for res_type, res_data in status['resources'].items():
-        print(f"  {res_type}: {res_data['percentage']:.1f}% "
-              f"({'CRITICAL' if res_data['critical'] else 'OK'})")
-
-    # Create some metabolic processes
-    print("\n🔬 Starting metabolic processes...")
-
-    # Process 1: Reconnaissance (low cost)
-    recon = MetabolicProcess(
-        process_id="recon_001",
-        name="Reconnaissance",
-        resource_cost={
-            ResourceType.ENERGY: 10.0,
-            ResourceType.BANDWIDTH: 15.0,
-            ResourceType.ATTENTION: 5.0
-        },
-        resource_yield={
-            ResourceType.ENERGY: 2.0  # Small yield
-        },
-        duration=5.0,
-        priority=6
-    )
-
-    # Process 2: Attack (high cost)
-    attack = MetabolicProcess(
-        process_id="attack_001",
-        name="Attack Execution",
-        resource_cost={
-            ResourceType.ENERGY: 40.0,
-            ResourceType.MEMORY: 30.0,
-            ResourceType.BANDWIDTH: 25.0,
-            ResourceType.ATTENTION: 20.0
-        },
-        resource_yield={
-            ResourceType.ENERGY: 10.0  # Moderate yield
-        },
-        duration=10.0,
-        priority=8
-    )
-
-    # Process 3: Learning (moderate cost, high yield)
-    learning = MetabolicProcess(
-        process_id="learn_001",
-        name="Learning Process",
-        resource_cost={
-            ResourceType.ENERGY: 20.0,
-            ResourceType.MEMORY: 25.0,
-            ResourceType.ATTENTION: 30.0
-        },
-        resource_yield={
-            ResourceType.ENERGY: 15.0,
-            ResourceType.ATTENTION: 10.0
-        },
-        duration=8.0,
-        priority=7
-    )
-
-    # Allocate resources
-    metabolism.allocate_resources(recon)
-    metabolism.allocate_resources(attack)
-    metabolism.allocate_resources(learning)
-
-    print(f"  Active processes: {len(metabolism.active_processes)}")
-
-    # Simulate metabolic cycles
-    print("\n⏱️  Simulating 10 metabolic cycles...")
-    for i in range(10):
-        metabolism.metabolic_cycle(delta_time=1.0)
-
-        if i % 3 == 0:
-            status = metabolism.get_resource_status()
-            print(f"\nCycle {i+1}:")
-            print(f"  State: {status['state']}")
-            print(f"  Stress: {status['stress_level']:.2f}")
-            print(f"  Efficiency: {status['efficiency']:.2f}")
-
-            # Show energy level
-            energy = status['resources']['energy']
-            print(f"  Energy: {energy['percentage']:.1f}%")
-
-    # Complete some processes
-    print("\n✅ Completing processes...")
-    metabolism.complete_process("recon_001")
-    metabolism.complete_process("learning_001")
-
-    # Final status
-    print("\n📊 Final Resource Status:")
-    final_status = metabolism.get_resource_status()
-    for res_type, res_data in final_status['resources'].items():
-        bar = '█' * int(res_data['percentage'] / 5)
-        print(f"  {res_type:15s}: [{bar:20s}] {res_data['percentage']:.1f}%")
-
-    # Export state
-    metabolism.export_metabolic_state('/root/synexs/metabolism_state.json')
-
-    print("\n✅ Metabolism engine demonstration complete!")
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(export_data, f, indent=2)
+            print(f"✅ Metabolic state exported to {filepath}")
+        except (IOError, OSError) as e:
+            print(f"❌ Error exporting metabolic state: {e}")
