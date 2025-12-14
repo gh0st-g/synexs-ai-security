@@ -1,0 +1,59 @@
+{
+  "mode": "biological",
+  "description": "Biological Organism Mode - All processes managed by digital organism",
+  "processes": [
+    {
+      "name": "synexs_biological_organism",
+      "script": "/root/synexs/synexs_main_biological.py",
+      "python": "/root/synexs/synexs_env/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": [],
+      "enabled": true,
+      "health_check": {
+        "type": "file",
+        "path": "/root/synexs/organism_state.json",
+        "max_age_seconds": 300
+      },
+      "description": "Master biological organism that manages all other processes"
+    }
+  ],
+  "managed_by_organism": [
+    {
+      "name": "honeypot_server",
+      "cell_type": "defender",
+      "critical": true,
+      "description": "Managed by organism - started automatically"
+    },
+    {
+      "name": "ai_swarm_fixed",
+      "cell_type": "executor",
+      "critical": true,
+      "description": "Managed by organism - started automatically"
+    },
+    {
+      "name": "listener",
+      "cell_type": "scout",
+      "critical": true,
+      "description": "Managed by organism - started automatically"
+    }
+  ],
+  "services": [
+    {
+      "name": "redis",
+      "type": "system",
+      "health_check": {
+        "type": "redis",
+        "command": "redis-cli ping",
+        "expect": "PONG"
+      }
+    }
+  ],
+  "biological_features": {
+    "immune_system": true,
+    "genetic_evolution": true,
+    "cell_differentiation": true,
+    "metabolism": true,
+    "reproduction": true,
+    "aging": true
+  }
+}
