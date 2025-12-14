@@ -2,23 +2,6 @@
 """
 Swarm Genetic Evolution Wrapper
 Adds true genetic evolution to agent swarm
-
-This module provides genetic algorithm integration for the swarm:
-- Sexual reproduction (DNA crossover)
-- Genetic mutations
-- Fitness-based selection
-- Multi-generational evolution
-- 10x faster agent improvement
-
-Usage:
-    from swarm_genetic_wrapper import register_agent, evolve_new_generation
-
-The wrapper will:
-1. Track agent fitness based on success rates
-2. Select fit parents for reproduction
-3. Create offspring through sexual reproduction
-4. Mutate offspring genomes
-5. Generate new agent code from evolved genomes
 """
 
 import json
@@ -27,6 +10,7 @@ import hashlib
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
+import time
 
 # Add synexs to path
 sys.path.append('/root/synexs')
@@ -112,18 +96,6 @@ def _save_genetic_history():
 def extract_genome_from_agent(agent_file: Path) -> List[str]:
     """
     Extract behavioral genome from agent code
-
-    Maps agent code patterns to genes:
-    - Network scanning -> SCAN
-    - Evasion techniques -> EVADE
-    - Attack methods -> ATTACK
-    - Defense detection -> DEFEND
-    - Learning/adaptation -> LEARN
-    - Communication -> REPORT
-    - Self-modification -> ADAPT
-    - Data exfiltration -> EXFILTRATE
-    - Stealth operations -> STEALTH
-    - Replication -> REPLICATE
     """
     try:
         content = agent_file.read_text()
@@ -161,13 +133,6 @@ def extract_genome_from_agent(agent_file: Path) -> List[str]:
 def calculate_agent_fitness(agent_id: str, stats: Dict[str, Any]) -> float:
     """
     Calculate agent fitness from performance stats
-
-    Fitness = weighted combination of:
-    - Success rate (40%)
-    - Survival time (20%)
-    - Stealth (not detected) (20%)
-    - Innovation (unique behaviors) (10%)
-    - Efficiency (resource usage) (10%)
     """
     fitness = 0.5  # Base fitness
 
@@ -203,14 +168,6 @@ def calculate_agent_fitness(agent_id: str, stats: Dict[str, Any]) -> float:
 def register_agent(agent_id: str, agent_file: Path, stats: Dict[str, Any]) -> bool:
     """
     Register an agent in the genetic pool
-
-    Args:
-        agent_id: Unique agent identifier
-        agent_file: Path to agent code
-        stats: Performance statistics
-
-    Returns:
-        True if successfully registered
     """
     try:
         genetics = get_genetics()
@@ -249,12 +206,6 @@ def register_agent(agent_id: str, agent_file: Path, stats: Dict[str, Any]) -> bo
 def evolve_new_generation(num_offspring: int = 5) -> List[GeneticProfile]:
     """
     Evolve new generation of agents
-
-    Args:
-        num_offspring: Number of offspring to create
-
-    Returns:
-        List of offspring genetic profiles
     """
     genetics = get_genetics()
 
@@ -288,8 +239,6 @@ def evolve_new_generation(num_offspring: int = 5) -> List[GeneticProfile]:
 def genome_to_agent_code(genome: List[str], agent_id: str) -> str:
     """
     Generate agent code from genome
-
-    Translates genetic code to Python code
     """
     code_template = f'''#!/usr/bin/env python3
 """
@@ -385,13 +334,6 @@ if __name__ == "__main__":
 def create_offspring_files(offspring: List[GeneticProfile], output_dir: Path) -> List[Path]:
     """
     Create agent files from offspring genomes
-
-    Args:
-        offspring: List of offspring genetic profiles
-        output_dir: Directory to save agent files
-
-    Returns:
-        List of created file paths
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     created_files = []

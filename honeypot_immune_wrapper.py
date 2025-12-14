@@ -25,6 +25,7 @@ import time
 import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
+from collections import defaultdict
 
 # Add synexs to path
 sys.path.append('/root/synexs')
@@ -47,7 +48,10 @@ def get_immune_system() -> AdaptiveImmuneSystem:
         print("🧬 Immune system initialized for honeypot")
 
         # Load previous immune memory if exists
-        _load_immune_memory()
+        try:
+            _load_immune_memory()
+        except Exception as e:
+            print(f"  ⚠️ Failed to load immune memory: {e}")
 
     return _immune_system
 
@@ -57,20 +61,14 @@ def _load_immune_memory():
     if not _immune_log_file.exists():
         return
 
-    try:
-        with open(_immune_log_file, 'r') as f:
-            memory_data = json.load(f)
+    with open(_immune_log_file, 'r') as f:
+        memory_data = json.load(f)
 
-        # Restore memory cells
-        for mem in memory_data.get('memory_cells', []):
-            # The immune system will automatically create memory
-            # when we encounter threats, so this is just logging
-            pass
+    # Restore memory cells
+    for mem in memory_data.get('memory_cells', []):
+        get_immune_system().restore_memory_cell(mem)
 
-        print(f"  ✓ Loaded {len(memory_data.get('memory_cells', []))} immune memories")
-
-    except Exception as e:
-        print(f"  ⚠️ Failed to load immune memory: {e}")
+    print(f"  ✓ Loaded {len(memory_data.get('memory_cells', []))} immune memories")
 
 
 def _save_immune_memory():
@@ -113,53 +111,63 @@ def immune_log_attack(attack_data: Dict[str, Any]) -> Dict[str, Any]:
     # Extract threat signature
     threat_type = attack_data.get('result', 'unknown')
     source_ip = attack_data.get('ip', 'unknown')
+    signature = f"{threat_type}:{source_ip}"
 
-    # Create threat data for immune system
-    threat_data = {
-        'type': threat_type,
-        'source_ip': source_ip,
-        'payload': attack_data.get('payload', ''),
-        'endpoint': attack_data.get('endpoint', ''),
-        'user_agent': attack_data.get('user_agent', ''),
-        'timestamp': attack_data.get('timestamp', time.time())
-    }
-
-    # Calculate danger level based on attack type
-    danger_levels = {
-        'sqli': 0.9,
-        'xss': 0.8,
-        'cmd_injection': 0.95,
-        'path_traversal': 0.7,
-        'fake_crawler_blocked': 0.6,
-        'rate_limited': 0.5,
-        'sensitive_path': 0.6
-    }
-
-    # Check for multiple threat types
-    threats = attack_data.get('threats', [])
-    if threats:
-        danger = max([danger_levels.get(t, 0.5) for t in threats])
+    # Check response cache
+    if signature in _response_cache:
+        response_id = _response_cache[signature]
+        response = immune.get_response(response_id)
+        recognition_time = 0
     else:
-        danger = danger_levels.get(threat_type, 0.5)
+        # Create threat data for immune system
+        threat_data = {
+            'type': threat_type,
+            'source_ip': source_ip,
+            'payload': attack_data.get('payload', ''),
+            'endpoint': attack_data.get('endpoint', ''),
+            'user_agent': attack_data.get('user_agent', ''),
+            'timestamp': attack_data.get('timestamp', time.time())
+        }
 
-    threat_data['danger_level'] = danger
+        # Calculate danger level based on attack type
+        danger_levels = defaultdict(lambda: 0.5, {
+            'sqli': 0.9,
+            'xss': 0.8,
+            'cmd_injection': 0.95,
+            'path_traversal': 0.7,
+            'fake_crawler_blocked': 0.6,
+            'rate_limited': 0.5,
+            'sensitive_path': 0.6
+        })
 
-    # Recognize threat (creates Antigen)
-    start_time = time.time()
-    antigen = immune.recognize_threat(threat_data)
-    recognition_time = (time.time() - start_time) * 1000  # ms
+        # Check for multiple threat types
+        threats = attack_data.get('threats', [])
+        if threats:
+            danger = max([danger_levels[t] for t in threats])
+        else:
+            danger = danger_levels[threat_type]
 
-    # Mount immune response
-    start_time = time.time()
-    response = immune.mount_immune_response(antigen)
-    response_time = (time.time() - start_time) * 1000  # ms
+        threat_data['danger_level'] = danger
 
-    # Report success (honeypot successfully blocked it)
-    immune.report_outcome(response.response_id, success=True, metrics={
-        'recognition_time_ms': recognition_time,
-        'response_time_ms': response_time,
-        'danger_level': danger
-    })
+        # Recognize threat (creates Antigen)
+        start_time = time.time()
+        antigen = immune.recognize_threat(threat_data)
+        recognition_time = (time.time() - start_time) * 1000  # ms
+
+        # Mount immune response
+        start_time = time.time()
+        response = immune.mount_immune_response(antigen)
+        response_time = (time.time() - start_time) * 1000  # ms
+
+        # Report success (honeypot successfully blocked it)
+        immune.report_outcome(response.response_id, success=True, metrics={
+            'recognition_time_ms': recognition_time,
+            'response_time_ms': response_time,
+            'danger_level': danger
+        })
+
+        # Cache the response
+        _response_cache[signature] = response.response_id
 
     # Add immune system info to attack data
     attack_data['immune_response'] = {
@@ -174,7 +182,10 @@ def immune_log_attack(attack_data: Dict[str, Any]) -> Dict[str, Any]:
 
     # Periodically save immune memory
     if immune.total_encounters % 100 == 0:
-        _save_immune_memory()
+        try:
+            _save_immune_memory()
+        except Exception as e:
+            print(f"  ⚠️ Failed to save immune memory: {e}")
 
     return attack_data
 
