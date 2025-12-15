@@ -1,0 +1,154 @@
+{"sequence": "SCAN ATTACK REPLICATE", "action": "DEFEND", "confidence": 0.18735530972480774, "source": "fallback", "timestamp": "2025-12-15T00:44:50.273900"}
+{"sequence": "MUTATE EVADE FLAG", "action": "MUTATE", "confidence": 0.16389383375644684, "source": "fallback", "timestamp": "2025-12-15T00:44:50.274566"}
+{"sequence": "LEARN REPORT DEFEND", "action": "SCAN", "confidence": 0.3267230689525604, "source": "fallback", "timestamp": "2025-12-15T00:44:50.275068"}
+{"sequence": "CHECKPOINT VALIDATE BROADCAST", "action": "SCAN", "confidence": 0.547652006149292, "source": "fallback", "timestamp": "2025-12-15T00:44:50.281944"}
+{"sequence": "TERMINATE ACK COMPRESS", "action": "SCAN", "confidence": 0.5577290654182434, "source": "fallback", "timestamp": "2025-12-15T00:49:38.824849"}
+{"sequence": "XOR_PAYLOAD CHECKPOINT HASH_CHECK ROUTE SCAN REPLICATE LEARN MERGE", "action": "REPLICATE", "confidence": 0.1780165731906891, "source": "fallback", "timestamp": "2025-12-15T00:49:38.825697"}
+{"sequence": "SPLIT STACK_PUSH ATTACK", "action": "DEFEND", "confidence": 0.260530024766922, "source": "fallback", "timestamp": "2025-12-15T00:49:38.834469"}
+{"sequence": "FLAG TRANSFORM LOG MUTATE FLAG", "action": "MUTATE", "confidence": 0.2360287755727768, "source": "fallback", "timestamp": "2025-12-15T00:49:38.835333"}
+{"sequence": "MUTATE BROADCAST EVADE TRANSFORM", "action": "MUTATE", "confidence": 0.2845665216445923, "source": "fallback", "timestamp": "2025-12-15T00:49:38.835967"}
+{"sequence": "LISTEN FILTER FILTER MERGE STACK_PUSH CHECKPOINT REPORT", "action": "SCAN", "confidence": 0.16404633224010468, "source": "fallback", "timestamp": "2025-12-15T00:49:38.836481"}
+{"sequence": "STACK_PUSH FILTER COMPRESS", "action": "SCAN", "confidence": 0.1092231273651123, "source": "fallback", "timestamp": "2025-12-15T00:49:38.836967"}
+{"sequence": "LOG FILTER SYNC CHECKPOINT REPLICATE XOR_PAYLOAD MUTATE", "action": "MUTATE", "confidence": 0.12594157457351685, "source": "fallback", "timestamp": "2025-12-15T00:49:38.837382"}
+{"sequence": "ACK PAUSE BROADCAST FILTER TERMINATE COMPRESS ENCRYPT REPORT", "action": "SCAN", "confidence": 0.06962735950946808, "source": "fallback", "timestamp": "2025-12-15T00:49:38.841043"}
+{"sequence": "FLAG LISTEN LISTEN", "action": "EVADE", "confidence": 0.5694242715835571, "source": "fallback", "timestamp": "2025-12-15T00:49:38.841918"}
+{"sequence": "CHECKPOINT LEARN ATTACK ROUTE REPLICATE PAUSE", "action": "DEFEND", "confidence": 0.20993538200855255, "source": "fallback", "timestamp": "2025-12-15T00:49:38.842524"}
+{"sequence": "TRANSFORM MUTATE NACK ATTACK", "action": "DEFEND", "confidence": 0.20633839070796967, "source": "fallback", "timestamp": "2025-12-15T00:49:38.842972"}
+{"sequence": "DEFEND ROUTE DEFEND HASH_CHECK", "action": "SCAN", "confidence": 0.379163920879364, "source": "fallback", "timestamp": "2025-12-15T00:49:38.843394"}
+{"sequence": "REFINE SCAN CHECKPOINT NACK HASH_CHECK ATTACK ATTACK TRANSFORM", "action": "DEFEND", "confidence": 0.36385872960090637, "source": "fallback", "timestamp": "2025-12-15T00:49:38.843842"}
+{"sequence": "SPLIT XOR_PAYLOAD CHECKPOINT LISTEN CHECKPOINT", "action": "CHECKPOINT", "confidence": 0.6707671284675598, "source": "ai", "timestamp": "2025-12-15T00:49:38.844295"}
+{"sequence": "TRANSFORM MUTATE MUTATE ENCRYPT LISTEN ATTACK MUTATE", "action": "DEFEND", "confidence": 0.13910377025604248, "source": "fallback", "timestamp": "2025-12-15T00:49:38.844777"}
+{"sequence": "TRANSFORM EVADE VALIDATE DEFEND", "action": "EVADE", "confidence": 0.3640821874141693, "source": "fallback", "timestamp": "2025-12-15T00:49:38.845225"}
+{"sequence": "REPLICATE MUTATE ROUTE LEARN REPLICATE SPLIT QUERY", "action": "MUTATE", "confidence": 0.15716053545475006, "source": "fallback", "timestamp": "2025-12-15T00:49:38.845642"}
+{"sequence": "LEARN PAUSE SYNC DEFEND FILTER", "action": "SCAN", "confidence": 0.22784748673439026, "source": "fallback", "timestamp": "2025-12-15T00:49:38.846509"}
+{"sequence": "LISTEN VALIDATE STACK_PUSH", "action": "SCAN", "confidence": 0.1947157084941864, "source": "fallback", "timestamp": "2025-12-15T00:49:38.846955"}
+{"sequence": "FLAG MUTATE NACK ATTACK", "action": "DEFEND", "confidence": 0.18937063217163086, "source": "fallback", "timestamp": "2025-12-15T00:49:38.847422"}
+{"sequence": "COMPRESS LOG SCAN MERGE ROUTE STACK_PUSH EVADE", "action": "EVADE", "confidence": 0.15157897770404816, "source": "fallback", "timestamp": "2025-12-15T00:49:38.847869"}
+{"sequence": "SYNC LISTEN ACK SYNC LOG", "action": "SCAN", "confidence": 0.216751828789711, "source": "fallback", "timestamp": "2025-12-15T00:49:38.852871"}
+{"sequence": "LEARN XOR_PAYLOAD NACK QUERY LEARN ENCRYPT ROUTE", "action": "SCAN", "confidence": 0.21407316625118256, "source": "fallback", "timestamp": "2025-12-15T00:49:38.853435"}
+{"sequence": "ROUTE MERGE HASH_CHECK", "action": "SCAN", "confidence": 0.5445577502250671, "source": "fallback", "timestamp": "2025-12-15T00:49:38.853987"}
+{"sequence": "QUERY NACK ACK REPLICATE DEFEND LISTEN SYNC COMPRESS", "action": "REPLICATE", "confidence": 0.19015935063362122, "source": "fallback", "timestamp": "2025-12-15T00:49:38.854510"}
+{"sequence": "STACK_POP COMPRESS ENCRYPT LISTEN STACK_PUSH XOR_PAYLOAD HASH_CHECK EVADE", "action": "EVADE", "confidence": 0.12851005792617798, "source": "fallback", "timestamp": "2025-12-15T00:49:38.855036"}
+{"sequence": "LOG ENCRYPT CHECKPOINT MUTATE REPORT ACK", "action": "MUTATE", "confidence": 0.19059349596500397, "source": "fallback", "timestamp": "2025-12-15T00:49:38.855542"}
+{"sequence": "XOR_PAYLOAD REPORT ACK MERGE SYNC", "action": "SCAN", "confidence": 0.14549246430397034, "source": "fallback", "timestamp": "2025-12-15T00:49:38.856040"}
+{"sequence": "ENCRYPT MUTATE DEFEND QUERY SPLIT BROADCAST EVADE TRANSFORM", "action": "MUTATE", "confidence": 0.1543397605419159, "source": "fallback", "timestamp": "2025-12-15T00:49:38.856469"}
+{"sequence": "FLAG CHECKPOINT DEFEND STACK_POP BROADCAST LOG SPLIT", "action": "EVADE", "confidence": 0.20195266604423523, "source": "fallback", "timestamp": "2025-12-15T00:49:38.856944"}
+{"sequence": "HASH_CHECK TRANSFORM EVADE HASH_CHECK SCAN FILTER ACK", "action": "EVADE", "confidence": 0.12283827364444733, "source": "fallback", "timestamp": "2025-12-15T00:49:38.857419"}
+{"sequence": "TRANSFORM LOG VALIDATE PAUSE STACK_PUSH PAUSE STACK_POP NACK", "action": "SCAN", "confidence": 0.167973592877388, "source": "fallback", "timestamp": "2025-12-15T00:49:38.858024"}
+{"sequence": "ATTACK MERGE SYNC STACK_PUSH COMPRESS", "action": "DEFEND", "confidence": 0.0876985713839531, "source": "fallback", "timestamp": "2025-12-15T00:49:38.858454"}
+{"sequence": "TRANSFORM ACK NACK BROADCAST MERGE CHECKPOINT EVADE ACK", "action": "EVADE", "confidence": 0.10839243233203888, "source": "fallback", "timestamp": "2025-12-15T00:49:38.858890"}
+{"sequence": "TRANSFORM LOG LOG FILTER REPORT", "action": "SCAN", "confidence": 0.5104123950004578, "source": "fallback", "timestamp": "2025-12-15T00:49:38.859307"}
+{"sequence": "XOR_PAYLOAD TERMINATE DEFEND CHECKPOINT", "action": "SCAN", "confidence": 0.15048718452453613, "source": "fallback", "timestamp": "2025-12-15T00:49:38.859733"}
+{"sequence": "LOG CHECKPOINT LISTEN TRANSFORM STACK_PUSH", "action": "SCAN", "confidence": 0.1380552053451538, "source": "fallback", "timestamp": "2025-12-15T00:49:38.860201"}
+{"sequence": "SYNC FLAG EVADE", "action": "EVADE", "confidence": 0.2775167226791382, "source": "fallback", "timestamp": "2025-12-15T00:49:38.860730"}
+{"sequence": "VALIDATE MUTATE STACK_POP NACK MUTATE LEARN MUTATE", "action": "MUTATE", "confidence": 0.17085792124271393, "source": "fallback", "timestamp": "2025-12-15T00:49:38.866605"}
+{"sequence": "STACK_PUSH PAUSE REPLICATE REPLICATE", "action": "REPLICATE", "confidence": 0.38932281732559204, "source": "fallback", "timestamp": "2025-12-15T00:49:38.867357"}
+{"sequence": "ROUTE FLAG LISTEN MERGE QUERY STACK_POP CHECKPOINT", "action": "EVADE", "confidence": 0.24393828213214874, "source": "fallback", "timestamp": "2025-12-15T00:49:38.867883"}
+{"sequence": "REFINE MUTATE REPLICATE STACK_PUSH MUTATE PAUSE MERGE", "action": "MUTATE", "confidence": 0.08192700892686844, "source": "fallback", "timestamp": "2025-12-15T00:49:38.868337"}
+{"sequence": "SYNC DEFEND SYNC LISTEN NACK ROUTE HASH_CHECK FILTER", "action": "SCAN", "confidence": 0.25897133350372314, "source": "fallback", "timestamp": "2025-12-15T00:49:38.868863"}
+{"sequence": "ATTACK COMPRESS QUERY", "action": "DEFEND", "confidence": 0.3458665907382965, "source": "fallback", "timestamp": "2025-12-15T00:49:38.869297"}
+{"sequence": "ENCRYPT MERGE STACK_PUSH STACK_POP STACK_PUSH TRANSFORM DEFEND", "action": "SCAN", "confidence": 0.2327897846698761, "source": "fallback", "timestamp": "2025-12-15T00:49:38.869700"}
+{"sequence": "REFINE LOG SPLIT COMPRESS LISTEN FILTER", "action": "SCAN", "confidence": 0.11379686743021011, "source": "fallback", "timestamp": "2025-12-15T00:49:38.874684"}
+{"sequence": "DEFEND LISTEN HASH_CHECK SCAN COMPRESS", "action": "SCAN", "confidence": 0.2391728311777115, "source": "fallback", "timestamp": "2025-12-15T00:49:38.875381"}
+{"sequence": "CHECKPOINT MUTATE SCAN FLAG", "action": "MUTATE", "confidence": 0.49195539951324463, "source": "fallback", "timestamp": "2025-12-15T00:49:38.875839"}
+{"sequence": "STACK_POP XOR_PAYLOAD STACK_PUSH XOR_PAYLOAD REPORT FILTER SCAN", "action": "SCAN", "confidence": 0.15555448830127716, "source": "fallback", "timestamp": "2025-12-15T00:49:38.876418"}
+{"sequence": "LEARN XOR_PAYLOAD XOR_PAYLOAD STACK_POP FILTER", "action": "SCAN", "confidence": 0.10005681216716766, "source": "fallback", "timestamp": "2025-12-15T00:49:38.876922"}
+{"sequence": "EVADE LOG SCAN", "action": "EVADE", "confidence": 0.31332463026046753, "source": "fallback", "timestamp": "2025-12-15T00:49:38.877435"}
+{"sequence": "MERGE EVADE XOR_PAYLOAD HASH_CHECK", "action": "EVADE", "confidence": 0.11997294425964355, "source": "fallback", "timestamp": "2025-12-15T00:49:38.879788"}
+{"sequence": "MERGE ROUTE BROADCAST", "action": "SCAN", "confidence": 0.21331527829170227, "source": "fallback", "timestamp": "2025-12-15T00:49:38.880415"}
+{"sequence": "STACK_POP ATTACK EVADE LISTEN STACK_PUSH REPORT SYNC", "action": "DEFEND", "confidence": 0.17394569516181946, "source": "fallback", "timestamp": "2025-12-15T00:49:38.880973"}
+{"sequence": "REFINE REPORT CHECKPOINT ENCRYPT", "action": "SCAN", "confidence": 0.38370585441589355, "source": "fallback", "timestamp": "2025-12-15T00:49:38.881441"}
+{"sequence": "ROUTE SYNC VALIDATE ACK LEARN ACK SCAN", "action": "SCAN", "confidence": 0.27748245000839233, "source": "fallback", "timestamp": "2025-12-15T00:49:38.886343"}
+{"sequence": "ENCRYPT PAUSE MERGE SPLIT STACK_PUSH BROADCAST MUTATE", "action": "MUTATE", "confidence": 0.07345648109912872, "source": "fallback", "timestamp": "2025-12-15T00:49:38.887139"}
+{"sequence": "VALIDATE EVADE LISTEN", "action": "EVADE", "confidence": 0.3646104633808136, "source": "fallback", "timestamp": "2025-12-15T00:49:38.887547"}
+{"sequence": "PAUSE STACK_POP PAUSE MERGE EVADE", "action": "EVADE", "confidence": 0.34157952666282654, "source": "fallback", "timestamp": "2025-12-15T00:49:38.887867"}
+{"sequence": "MERGE TRANSFORM LISTEN LISTEN PAUSE REFINE", "action": "SCAN", "confidence": 0.13073424994945526, "source": "fallback", "timestamp": "2025-12-15T00:49:38.888246"}
+{"sequence": "SYNC FILTER REPORT TERMINATE LOG STACK_PUSH", "action": "SCAN", "confidence": 0.23998554050922394, "source": "fallback", "timestamp": "2025-12-15T00:49:38.888666"}
+{"sequence": "TERMINATE VALIDATE FLAG HASH_CHECK", "action": "EVADE", "confidence": 0.18474440276622772, "source": "fallback", "timestamp": "2025-12-15T00:49:38.889152"}
+{"sequence": "XOR_PAYLOAD TERMINATE MUTATE ACK PAUSE", "action": "MUTATE", "confidence": 0.0806838646531105, "source": "fallback", "timestamp": "2025-12-15T00:49:38.889630"}
+{"sequence": "REPORT SCAN EVADE LOG HASH_CHECK MUTATE STACK_POP", "action": "MUTATE", "confidence": 0.17671486735343933, "source": "fallback", "timestamp": "2025-12-15T00:49:38.894546"}
+{"sequence": "TERMINATE STACK_POP FLAG MUTATE REFINE", "action": "MUTATE", "confidence": 0.17781862616539001, "source": "fallback", "timestamp": "2025-12-15T00:49:38.895303"}
+{"sequence": "ROUTE BROADCAST PAUSE STACK_PUSH COMPRESS TERMINATE REFINE", "action": "SCAN", "confidence": 0.09161850810050964, "source": "fallback", "timestamp": "2025-12-15T00:49:38.895788"}
+{"sequence": "STACK_POP NACK TERMINATE HASH_CHECK", "action": "SCAN", "confidence": 0.14182431995868683, "source": "fallback", "timestamp": "2025-12-15T00:49:38.896145"}
+{"sequence": "ROUTE REPLICATE REPORT FILTER", "action": "REPLICATE", "confidence": 0.11996354162693024, "source": "fallback", "timestamp": "2025-12-15T00:49:38.896447"}
+{"sequence": "SYNC ENCRYPT ENCRYPT ATTACK TRANSFORM", "action": "DEFEND", "confidence": 0.512423574924469, "source": "fallback", "timestamp": "2025-12-15T00:49:38.896812"}
+{"sequence": "QUERY STACK_PUSH REPORT SYNC ACK NACK", "action": "SCAN", "confidence": 0.20329895615577698, "source": "fallback", "timestamp": "2025-12-15T00:49:38.897298"}
+{"sequence": "ATTACK STACK_POP MERGE HASH_CHECK ATTACK PAUSE SCAN ACK", "action": "DEFEND", "confidence": 0.19389809668064117, "source": "fallback", "timestamp": "2025-12-15T00:49:38.897759"}
+{"sequence": "HASH_CHECK SYNC SPLIT BROADCAST FILTER DEFEND MUTATE", "action": "MUTATE", "confidence": 0.07477132976055145, "source": "fallback", "timestamp": "2025-12-15T00:49:38.900953"}
+{"sequence": "QUERY NACK ATTACK PAUSE TERMINATE STACK_POP REFINE", "action": "DEFEND", "confidence": 0.15282337367534637, "source": "fallback", "timestamp": "2025-12-15T00:49:38.901531"}
+{"sequence": "SYNC MUTATE PAUSE TRANSFORM", "action": "MUTATE", "confidence": 0.20669502019882202, "source": "fallback", "timestamp": "2025-12-15T00:49:38.902213"}
+{"sequence": "EVADE EVADE CHECKPOINT", "action": "EVADE", "confidence": 0.4981112480163574, "source": "fallback", "timestamp": "2025-12-15T00:49:38.902659"}
+{"sequence": "DEFEND ACK STACK_POP SYNC EVADE ACK ATTACK REPORT", "action": "DEFEND", "confidence": 0.21889835596084595, "source": "fallback", "timestamp": "2025-12-15T00:49:38.903083"}
+{"sequence": "FILTER REFINE ACK SYNC LISTEN REPORT", "action": "SCAN", "confidence": 0.11323108524084091, "source": "fallback", "timestamp": "2025-12-15T00:49:38.903497"}
+{"sequence": "VALIDATE SPLIT REPLICATE DEFEND", "action": "REPLICATE", "confidence": 0.4013887345790863, "source": "fallback", "timestamp": "2025-12-15T00:49:38.903887"}
+{"sequence": "COMPRESS COMPRESS FILTER EVADE", "action": "EVADE", "confidence": 0.42943134903907776, "source": "fallback", "timestamp": "2025-12-15T00:49:38.904271"}
+{"sequence": "NACK CHECKPOINT REPLICATE NACK", "action": "REPLICATE", "confidence": 0.23792479932308197, "source": "fallback", "timestamp": "2025-12-15T00:49:38.904690"}
+{"sequence": "VALIDATE SPLIT COMPRESS TRANSFORM", "action": "SCAN", "confidence": 0.24373170733451843, "source": "fallback", "timestamp": "2025-12-15T00:49:38.905019"}
+{"sequence": "TRANSFORM STACK_PUSH REPLICATE", "action": "REPLICATE", "confidence": 0.19190463423728943, "source": "fallback", "timestamp": "2025-12-15T00:49:38.905328"}
+{"sequence": "REPORT HASH_CHECK PAUSE STACK_PUSH SPLIT TRANSFORM ACK", "action": "SCAN", "confidence": 0.10275080054998398, "source": "fallback", "timestamp": "2025-12-15T00:49:38.905637"}
+{"sequence": "DEFEND STACK_POP PAUSE MERGE ENCRYPT QUERY EVADE SYNC", "action": "EVADE", "confidence": 0.10436129570007324, "source": "fallback", "timestamp": "2025-12-15T00:49:38.910039"}
+{"sequence": "DEFEND MUTATE SCAN SYNC", "action": "MUTATE", "confidence": 0.3013818562030792, "source": "fallback", "timestamp": "2025-12-15T00:49:38.910762"}
+{"sequence": "LOG ENCRYPT TERMINATE TRANSFORM SPLIT", "action": "SCAN", "confidence": 0.1104075238108635, "source": "fallback", "timestamp": "2025-12-15T00:49:38.911296"}
+{"sequence": "MUTATE COMPRESS MUTATE REPLICATE STACK_PUSH SYNC STACK_POP TERMINATE", "action": "MUTATE", "confidence": 0.14233006536960602, "source": "fallback", "timestamp": "2025-12-15T00:49:38.911779"}
+{"sequence": "XOR_PAYLOAD ACK LOG STACK_POP PAUSE FLAG PAUSE XOR_PAYLOAD", "action": "EVADE", "confidence": 0.22354277968406677, "source": "fallback", "timestamp": "2025-12-15T00:49:38.912195"}
+{"sequence": "COMPRESS REPLICATE BROADCAST LOG", "action": "REPLICATE", "confidence": 0.18105874955654144, "source": "fallback", "timestamp": "2025-12-15T00:49:38.912586"}
+{"sequence": "HASH_CHECK ACK MERGE ACK SYNC STACK_POP XOR_PAYLOAD", "action": "SCAN", "confidence": 0.1742231547832489, "source": "fallback", "timestamp": "2025-12-15T00:49:38.913052"}
+{"sequence": "ENCRYPT STACK_POP MUTATE STACK_PUSH REPLICATE ACK XOR_PAYLOAD", "action": "MUTATE", "confidence": 0.1251998245716095, "source": "fallback", "timestamp": "2025-12-15T00:49:38.913399"}
+{"sequence": "FILTER REPORT REPORT ENCRYPT ATTACK XOR_PAYLOAD HASH_CHECK", "action": "DEFEND", "confidence": 0.3541333079338074, "source": "fallback", "timestamp": "2025-12-15T00:49:38.913696"}
+{"sequence": "LEARN EVADE ATTACK", "action": "DEFEND", "confidence": 0.269152969121933, "source": "fallback", "timestamp": "2025-12-15T00:49:38.915111"}
+{"sequence": "EVADE TERMINATE XOR_PAYLOAD STACK_POP", "action": "EVADE", "confidence": 0.2061133235692978, "source": "fallback", "timestamp": "2025-12-15T00:49:38.915426"}
+{"sequence": "STACK_PUSH SYNC STACK_PUSH REFINE", "action": "SCAN", "confidence": 0.17921440303325653, "source": "fallback", "timestamp": "2025-12-15T00:49:38.915720"}
+{"sequence": "STACK_PUSH MUTATE VALIDATE QUERY EVADE MUTATE ACK", "action": "MUTATE", "confidence": 0.1507386863231659, "source": "fallback", "timestamp": "2025-12-15T00:49:38.916006"}
+{"sequence": "REPORT TRANSFORM HASH_CHECK COMPRESS LEARN BROADCAST", "action": "SCAN", "confidence": 0.11122852563858032, "source": "fallback", "timestamp": "2025-12-15T00:49:38.916291"}
+{"sequence": "ACK MERGE ACK MERGE", "action": "SCAN", "confidence": 0.24672077596187592, "source": "fallback", "timestamp": "2025-12-15T00:49:38.916697"}
+{"sequence": "REPORT LOG BROADCAST VALIDATE COMPRESS SCAN COMPRESS", "action": "SCAN", "confidence": 0.1900290995836258, "source": "fallback", "timestamp": "2025-12-15T00:49:38.917006"}
+{"sequence": "ALPHA THETA THETA THETA OMEGA THETA ZETA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.917297"}
+{"sequence": "ALPHA OMEGA ZETA ZETA ALPHA SIGMA ALPHA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.917580"}
+{"sequence": "OMEGA DELTA SIGMA OMEGA ZETA ZETA OMEGA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.917918"}
+{"sequence": "SIGMA ALPHA ALPHA THETA SIGMA THETA OMEGA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.918383"}
+{"sequence": "OMEGA DELTA OMEGA ZETA DELTA SIGMA THETA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.918788"}
+{"sequence": "THETA SIGMA SIGMA ZETA THETA THETA DELTA THETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.919176"}
+{"sequence": "OMEGA OMEGA ZETA THETA SIGMA ALPHA ALPHA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.919582"}
+{"sequence": "DELTA SIGMA OMEGA SIGMA SIGMA SIGMA OMEGA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.919984"}
+{"sequence": "THETA SIGMA ZETA SIGMA SIGMA ALPHA THETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.920441"}
+{"sequence": "THETA SIGMA OMEGA SIGMA ZETA ZETA ZETA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.920867"}
+{"sequence": "THETA ZETA DELTA SIGMA ALPHA OMEGA DELTA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.921169"}
+{"sequence": "DELTA SIGMA ZETA ALPHA SIGMA THETA THETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.921453"}
+{"sequence": "OMEGA SIGMA THETA ALPHA ALPHA DELTA SIGMA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.921857"}
+{"sequence": "THETA SIGMA ZETA OMEGA SIGMA ALPHA ZETA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.922181"}
+{"sequence": "ALPHA ZETA SIGMA ZETA OMEGA THETA SIGMA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.922467"}
+{"sequence": "ZETA THETA DELTA OMEGA SIGMA SIGMA OMEGA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.922746"}
+{"sequence": "OMEGA THETA THETA SIGMA ALPHA ALPHA ZETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.927366"}
+{"sequence": "ZETA SIGMA SIGMA THETA OMEGA THETA ALPHA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.928071"}
+{"sequence": "SIGMA DELTA OMEGA OMEGA THETA SIGMA THETA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.928664"}
+{"sequence": "ALPHA ZETA SIGMA OMEGA ZETA SIGMA ZETA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.929124"}
+{"sequence": "SIGMA SIGMA THETA SIGMA SIGMA OMEGA ZETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.929484"}
+{"sequence": "DELTA THETA DELTA SIGMA OMEGA DELTA ZETA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.933926"}
+{"sequence": "THETA THETA OMEGA THETA THETA SIGMA ZETA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.934628"}
+{"sequence": "ZETA ALPHA THETA SIGMA ALPHA ZETA OMEGA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.934987"}
+{"sequence": "ALPHA ALPHA ALPHA ALPHA ALPHA ZETA SIGMA THETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.935289"}
+{"sequence": "SIGMA SIGMA ALPHA THETA ZETA OMEGA SIGMA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.935577"}
+{"sequence": "SIGMA ALPHA ALPHA ZETA ALPHA THETA ZETA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.935865"}
+{"sequence": "ZETA DELTA SIGMA OMEGA SIGMA SIGMA THETA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.936154"}
+{"sequence": "ZETA THETA OMEGA SIGMA SIGMA ALPHA THETA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.936570"}
+{"sequence": "SIGMA SIGMA THETA DELTA THETA DELTA OMEGA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.936996"}
+{"sequence": "ZETA DELTA DELTA SIGMA ALPHA THETA DELTA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.937376"}
+{"sequence": "ZETA THETA OMEGA ALPHA SIGMA DELTA ALPHA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.937688"}
+{"sequence": "ZETA THETA THETA ZETA DELTA DELTA ALPHA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.939495"}
+{"sequence": "SIGMA ZETA ZETA OMEGA THETA SIGMA ALPHA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.940035"}
+{"sequence": "SIGMA SIGMA SIGMA DELTA SIGMA DELTA ALPHA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.940465"}
+{"sequence": "DELTA OMEGA SIGMA OMEGA SIGMA THETA SIGMA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.940977"}
+{"sequence": "THETA THETA OMEGA ZETA SIGMA ZETA DELTA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.946678"}
+{"sequence": "ZETA SIGMA THETA DELTA ALPHA THETA DELTA THETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.947213"}
+{"sequence": "ZETA DELTA OMEGA ZETA OMEGA OMEGA THETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.947674"}
+{"sequence": "THETA ALPHA OMEGA ALPHA SIGMA DELTA OMEGA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.948108"}
+{"sequence": "OMEGA DELTA OMEGA ALPHA OMEGA THETA ALPHA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.948511"}
+{"sequence": "ZETA DELTA ZETA THETA SIGMA ZETA DELTA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.948945"}
+{"sequence": "SIGMA ALPHA ZETA SIGMA ZETA ALPHA DELTA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.949345"}
+{"sequence": "ALPHA DELTA THETA DELTA OMEGA DELTA ZETA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.949734"}
+{"sequence": "ALPHA THETA ALPHA SIGMA ALPHA SIGMA OMEGA OMEGA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.954768"}
+{"sequence": "THETA SIGMA ALPHA SIGMA THETA SIGMA ALPHA DELTA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.955455"}
+{"sequence": "ZETA OMEGA OMEGA ZETA THETA ZETA ZETA ZETA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.955939"}
+{"sequence": "THETA THETA SIGMA THETA THETA SIGMA ZETA ALPHA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.956392"}
+{"sequence": "THETA SIGMA ALPHA ZETA OMEGA SIGMA SIGMA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.956856"}
+{"sequence": "ZETA OMEGA DELTA DELTA ALPHA SIGMA ZETA SIGMA", "action": "SCAN", "confidence": 0.5989030003547668, "source": "fallback", "timestamp": "2025-12-15T00:49:38.957273"}

@@ -12,6 +12,7 @@ import json
 import requests
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List, Tuple
 
 # Configuration
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN', '8204790720:AAEFxHurgJGIigQh0MtOlUbxX46PU8A2rA8')
@@ -35,7 +36,7 @@ def send_telegram_alert(message: str) -> bool:
             "text": message,
             "parse_mode": "HTML"
         }
-        response = requests.post(url, data=data, timeout=5)
+        response = requests.post(url, data=data, timeout=10)
         return response.json().get("ok", False)
     except Exception as e:
         log(f"Telegram error: {e}")
@@ -50,9 +51,9 @@ def log(message: str):
         with open(LOG_FILE, "a") as f:
             f.write(log_msg + "\n")
     except Exception as e:
-        log(f"Error writing to log file: {e}")
+        print(f"Error writing to log file: {e}", flush=True)
 
-def check_listener_processes() -> dict:
+def check_listener_processes() -> Dict[str, any]:
     """Check for listener process leaks"""
     try:
         listener_count = 0
@@ -75,7 +76,7 @@ def check_listener_processes() -> dict:
         log(f"Error checking listeners: {e}")
         return {"status": "❌ ERROR", "count": 0, "alert": False}
 
-def check_system_resources() -> dict:
+def check_system_resources() -> Dict[str, any]:
     """Check CPU, memory, disk usage"""
     try:
         cpu_percent = psutil.cpu_percent(interval=1)
@@ -103,7 +104,7 @@ def check_system_resources() -> dict:
         log(f"Error checking resources: {e}")
         return {"status": "❌ ERROR", "alerts": [str(e)], "alert": True}
 
-def check_log_files() -> dict:
+def check_log_files() -> Dict[str, any]:
     """Check for oversized log files"""
     try:
         oversized = []
@@ -122,7 +123,7 @@ def check_log_files() -> dict:
         log(f"Error checking logs: {e}")
         return {"status": "❌ ERROR", "oversized": [str(e)], "alert": True}
 
-def check_critical_processes() -> dict:
+def check_critical_processes() -> Dict[str, any]:
     """Check if critical processes are running"""
     critical_processes = [
         'honeypot_server.py',
@@ -131,8 +132,7 @@ def check_critical_processes() -> dict:
         'ai_swarm_fixed.py'
     ]
 
-    running = []
-    missing = []
+    running, missing = [], []
 
     for proc in psutil.process_iter(['cmdline']):
         try:
@@ -155,7 +155,7 @@ def check_critical_processes() -> dict:
         "alert": bool(missing)
     }
 
-def run_health_check():
+def run_health_check() -> Dict[str, any]:
     """Run all health checks and alert if issues found"""
     log("=" * 60)
     log("🏥 Health Check Started")

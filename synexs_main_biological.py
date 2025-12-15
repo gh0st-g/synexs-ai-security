@@ -195,9 +195,16 @@ class BiologicalOrchestrator:
             if not THREAT_QUEUE_FILE.exists():
                 return
 
-            # Read threat data
+            # Read threat data (JSONL format - one JSON object per line)
+            threats = []
             with open(THREAT_QUEUE_FILE, 'r') as f:
-                threats = json.load(f)
+                for line in f:
+                    line = line.strip()
+                    if line:  # Skip empty lines
+                        try:
+                            threats.append(json.loads(line))
+                        except json.JSONDecodeError:
+                            continue  # Skip malformed lines
 
             if not threats or len(threats) == 0:
                 return

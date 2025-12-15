@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Synexs Unified Model Module
+Synexs Unified Model Module - V3 Protocol Support
 Consolidates all ML model code for symbolic sequence classification
+Supports V3 Binary Protocol (32 actions)
 """
 
 import torch
@@ -15,20 +16,50 @@ import os
 
 # ==================== Configuration ====================
 MODEL_PATH = "synexs_core_model.pth"
-VOCAB_PATH = "vocab.json"
+VOCAB_PATH = "vocab_v3_binary.json"  # V3 Protocol vocabulary
 
-# Action mappings
-ACTIONS = ["discard", "refine", "replicate", "mutate", "flag"]
-ACTION2IDX = {a: i for i, a in enumerate(ACTIONS)}
-IDX2ACTION = {i: a for a, i in ACTION2IDX.items()}
+# ==================== Vocabulary Loading ====================
+def load_vocab(vocab_path: str = VOCAB_PATH) -> Dict[str, int]:
+    """Load vocabulary from JSON file"""
+    try:
+        with open(vocab_path, 'r') as f:
+            vocab = json.load(f)
+        return vocab
+    except FileNotFoundError:
+        logging.error(f"Vocabulary file not found: {vocab_path}")
+        raise
+    except Exception as e:
+        logging.error(f"Failed to load vocabulary: {e}")
+        raise
+
+# V3 Protocol: 32 Actions (loaded dynamically from vocab)
+def _load_action_mappings():
+    """Load V3 protocol action mappings from vocabulary"""
+    try:
+        vocab = load_vocab()
+        # Extract action names (non-special tokens)
+        actions = [k for k in vocab.keys() if not k.startswith('<')]
+        action2idx = {a: vocab[a] for a in actions}
+        idx2action = {v: k for k, v in action2idx.items()}
+        return actions, action2idx, idx2action
+    except Exception as e:
+        logging.warning(f"Failed to load V3 actions, using defaults: {e}")
+        # Fallback to minimal set
+        default_actions = ["SCAN", "ATTACK", "REPLICATE", "MUTATE", "EVADE"]
+        default_action2idx = {a: i for i, a in enumerate(default_actions)}
+        default_idx2action = {i: a for a, i in default_action2idx.items()}
+        return default_actions, default_action2idx, default_idx2action
+
+ACTIONS, ACTION2IDX, IDX2ACTION = _load_action_mappings()
 
 # ==================== Model Architecture ====================
 class SynexsCoreModel(nn.Module):
     """
-    Neural network for symbolic sequence classification
+    Neural network for symbolic sequence classification - V3 Protocol
     Architecture: Embedding → FC1 → ReLU → Dropout → FC2
+    Supports 32 action outputs for V3 binary protocol
     """
-    def __init__(self, vocab_size, embed_dim=32, hidden_dim=64, output_dim=5):
+    def __init__(self, vocab_size, embed_dim=32, hidden_dim=64, output_dim=32):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.fc1 = nn.Linear(embed_dim, hidden_dim)
@@ -76,31 +107,21 @@ class SynexsDataset(Dataset):
         return torch.tensor(token_ids, dtype=torch.long), 0  # Return dummy label for compatibility
 
 # ==================== Model Loading ====================
-def load_vocab(vocab_path: str = VOCAB_PATH) -> Dict[str, int]:
-    """Load vocabulary from JSON file"""
-    try:
-        with open(vocab_path, 'r') as f:
-            vocab = json.load(f)
-        return vocab
-    except FileNotFoundError:
-        logging.error(f"Vocabulary file not found: {vocab_path}")
-        raise
-    except Exception as e:
-        logging.error(f"Failed to load vocabulary: {e}")
-        raise
-
 def load_model(model_path: str = MODEL_PATH, vocab: Optional[Dict] = None) -> tuple:
-    """Load trained model and vocabulary"""
+    """Load trained model and vocabulary - V3 Protocol Support"""
     if vocab is None:
         vocab = load_vocab()
 
-    vocab_size = len(vocab)
-    model = SynexsCoreModel(vocab_size)
+    vocab_size = max(vocab.values()) + 1  # Dynamic vocab size
+    output_dim = len([k for k in vocab.keys() if not k.startswith('<')])  # Number of actions
+
+    model = SynexsCoreModel(vocab_size, output_dim=output_dim)
 
     try:
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
+        state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=False)
         model.load_state_dict(state_dict)
         model.eval()
+        logging.info(f"Loaded V3 model: vocab_size={vocab_size}, output_dim={output_dim}")
         return model, vocab
     except FileNotFoundError:
         logging.error(f"Model file not found: {model_path}")

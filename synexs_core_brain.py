@@ -4,13 +4,14 @@ import json
 from datetime import datetime
 import os
 from pathlib import Path
+import logging
 
 # ========== Load Vocab ==========
 try:
     with open("vocab.json", "r") as f:
         vocab = json.load(f)
 except FileNotFoundError:
-    print("Error: vocab.json file not found.")
+    logging.error("Error: vocab.json file not found.")
     exit(1)
 vocab_size = len(vocab)
 
@@ -41,7 +42,7 @@ try:
     model.load_state_dict(torch.load("synexs_core_model.pth", map_location=torch.device("cpu")))
     model.eval()
 except FileNotFoundError:
-    print("Error: synexs_core_model.pth file not found.")
+    logging.error("Error: synexs_core_model.pth file not found.")
     exit(1)
 
 # ========== Inference ==========
@@ -81,11 +82,12 @@ def generate_agent_plan(symbolic_input):
 
         return task
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logging.error(f"❌ Error: {e}")
         return "Error occurred during processing."
 
 # ========== CLI Test Loop ==========
 if __name__ == "__main__":
+    logging.basicConfig(filename="synexs_core_brain.log", level=logging.ERROR)
     print("🧠 Synexs Core Brain Ready.")
     while True:
         try:
@@ -98,4 +100,5 @@ if __name__ == "__main__":
             print("\nExiting...")
             break
         except Exception as e:
+            logging.error(f"❌ Error: {e}")
             print(f"❌ Error: {e}")

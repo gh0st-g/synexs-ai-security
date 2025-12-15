@@ -9,6 +9,9 @@ import base64
 import json
 import markdown
 from pathlib import Path
+from typing import Dict, Union
+from datetime import datetime
+import logging
 
 # WordPress Configuration
 WP_SITE = "https://synexs.net"
@@ -45,14 +48,20 @@ DOCS = [
 ]
 
 class WordPressUploader:
-    def __init__(self, site_url, username, app_password):
+    def __init__(self, site_url: str, username: str, app_password: str):
         self.api_url = f"{site_url}/wp-json/wp/v2"
         self.auth = (username, app_password)
         self.headers = {
             "Content-Type": "application/json"
         }
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler = logging.FileHandler('wordpress_upload.log')
+        file_handler.setFormatter(formatter)
+        self.logger.addHandler(file_handler)
 
-    def markdown_to_html(self, md_content):
+    def markdown_to_html(self, md_content: str) -> str:
         """Convert Markdown to HTML"""
         # Configure markdown extensions
         extensions = [
@@ -66,7 +75,7 @@ class WordPressUploader:
         html = markdown.markdown(md_content, extensions=extensions)
         return html
 
-    def create_post(self, title, content, slug, status="draft"):
+    def create_post(self, title: str, content: str, slug: str, status: str = "draft") -> Dict[str, Union[bool, int, str]]:
         """Create a WordPress post"""
         post_data = {
             "title": title,
@@ -76,21 +85,21 @@ class WordPressUploader:
             "format": "standard"
         }
 
-        response = requests.post(
-            f"{self.api_url}/posts",
-            auth=self.auth,
-            headers=self.headers,
-            json=post_data
-        )
+        try:
+            response = requests.post(
+                f"{self.api_url}/posts",
+                auth=self.auth,
+                headers=self.headers,
+                json=post_data,
+                timeout=60
+            )
+            response.raise_for_status()
+            return {"success": True, "id": response.json()['id'], "url": response.json()['link']}
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error creating post: {e}")
+            return {"success": False, "error": str(e)}
 
-        if response.status_code in [200, 201]:
-            post_id = response.json()['id']
-            post_url = response.json()['link']
-            return {"success": True, "id": post_id, "url": post_url}
-        else:
-            return {"success": False, "error": response.text}
-
-    def create_page(self, title, content, slug, status="draft"):
+    def create_page(self, title: str, content: str, slug: str, status: str = "draft") -> Dict[str, Union[bool, int, str]]:
         """Create a WordPress page (better for documentation)"""
         page_data = {
             "title": title,
@@ -99,25 +108,32 @@ class WordPressUploader:
             "status": status
         }
 
-        response = requests.post(
-            f"{self.api_url}/pages",
-            auth=self.auth,
-            headers=self.headers,
-            json=page_data
-        )
+        try:
+            response = requests.post(
+                f"{self.api_url}/pages",
+                auth=self.auth,
+                headers=self.headers,
+                json=page_data,
+                timeout=60
+            )
+            response.raise_for_status()
+            return {"success": True, "id": response.json()['id'], "url": response.json()['link']}
+        except requests.exceptions.RequestException as e:
+            self.logger.error(f"Error creating page: {e}")
+            return {"success": False, "error": str(e)}
 
-        if response.status_code in [200, 201]:
-            page_id = response.json()['id']
-            page_url = response.json()['link']
-            return {"success": True, "id": page_id, "url": page_url}
-        else:
-            return {"success": False, "error": response.text}
-
-    def upload_document(self, file_path, title, slug, as_page=True):
+    def upload_document(self, file_path: str, title: str, slug: str, as_page: bool = True) -> Dict[str, Union[bool, int, str]]:
         """Upload a markdown document to WordPress"""
         # Read markdown file
-        with open(file_path, 'r', encoding='utf-8') as f:
-            md_content = f.read()
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                md_content = f.read()
+        except FileNotFoundError:
+            self.logger.error(f"File not found: {file_path}")
+            return {"success": False, "error": "File not found"}
+        except Exception as e:
+            self.logger.error(f"Error reading file {file_path}: {e}")
+            return {"success": False, "error": str(e)}
 
         # Convert to HTML
         html_content = self.markdown_to_html(md_content)
@@ -140,11 +156,9 @@ class WordPressUploader:
 
         # Upload as page or post
         if as_page:
-            result = self.create_page(title, styled_content, slug, status="draft")
+            return self.create_page(title, styled_content, slug, status="draft")
         else:
-            result = self.create_post(title, styled_content, slug, status="draft")
-
-        return result
+            return self.create_post(title, styled_content, slug, status="draft")
 
 def main():
     print("🌐 Synexs WordPress Documentation Uploader")
@@ -157,10 +171,6 @@ def main():
     results = []
     for doc in DOCS:
         file_path = doc["file"]
-
-        if not Path(file_path).exists():
-            print(f"❌ File not found: {file_path}")
-            continue
 
         print(f"\n📄 Uploading: {doc['title']}")
         print(f"   File: {file_path}")
@@ -201,10 +211,12 @@ def main():
                 print(f"   • {r['url']}")
 
     # Save results
-    with open("wordpress_upload_results.json", "w") as f:
-        json.dump(results, f, indent=2)
-
-    print(f"\n💾 Results saved to: wordpress_upload_results.json")
+    try:
+        with open("wordpress_upload_results.json", "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"\n💾 Results saved to: wordpress_upload_results.json")
+    except Exception as e:
+        uploader.logger.error(f"Error saving results: {e}")
 
 if __name__ == "__main__":
     main()

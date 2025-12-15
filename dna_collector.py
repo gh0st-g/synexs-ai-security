@@ -13,6 +13,7 @@ from datetime import datetime
 from collections import deque
 import hashlib
 import logging
+import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -282,5 +283,4 @@ if __name__ == "__main__":
         collector.logger.info("⛔ [dna_collector] Interrupted")
     except Exception as e:
         collector.logger.error("❌ [dna_collector] Error: %s", e)
-        import traceback
         traceback.print_exc()

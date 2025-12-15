@@ -31,12 +31,12 @@ CRITICAL_PROCESSES = {
     'propagate_v3.py': {'max_instances': 1, 'required': False},
 }
 
-# Thresholds
-MAX_CPU_PERCENT = 80
+# Thresholds (optimized to be more conservative)
+MAX_CPU_PERCENT = 70
 MAX_MEMORY_PERCENT = 85
 MAX_DISK_PERCENT = 90
 MAX_LOG_SIZE_MB = 50
-DATASET_GROWTH_THRESHOLD_MB = 10  # Alert if datasets haven't grown
+DATASET_GROWTH_THRESHOLD_MB = 10
 
 def log(message: str, level: str = "INFO"):
     """Log message to file and stdout"""
@@ -58,7 +58,7 @@ def send_telegram(message: str) -> bool:
             "text": message,
             "parse_mode": "HTML"
         }
-        response = requests.post(url, data=data, timeout=5)
+        response = requests.post(url, data=data, timeout=10)
         return response.json().get("ok", False)
     except Exception as e:
         log(f"Telegram error: {e}", "ERROR")
@@ -70,8 +70,8 @@ def load_state() -> Dict:
         if os.path.exists(STATE_FILE):
             with open(STATE_FILE, 'r') as f:
                 return json.load(f)
-    except:
-        pass
+    except Exception as e:
+        log(f"Error loading state: {e}", "ERROR")
     return {
         'last_check': None,
         'dataset_sizes': {},
@@ -102,13 +102,22 @@ def check_processes() -> Dict:
 
     process_counts = {name: [] for name in CRITICAL_PROCESSES.keys()}
 
-    # Count running processes
+    # Count running processes (optimized: get CPU in one pass)
     for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'cpu_percent']):
         try:
             cmdline = ' '.join(proc.info['cmdline'] or [])
+            proc_name_lower = proc.info.get('name', '').lower()
+
+            # Skip shell wrappers (bash, sh running our scripts)
+            if proc_name_lower in ['bash', 'sh'] and any(p in cmdline for p in ['source', 'eval', 'claude']):
+                continue
+
             for proc_name in CRITICAL_PROCESSES.keys():
-                if proc_name in cmdline and 'python' in cmdline:
-                    cpu = proc.cpu_percent(interval=0.1)
+                # Match both "listener.py" and "-m listener" patterns
+                base_name = proc_name.replace('.py', '')
+                if (proc_name in cmdline or f"-m {base_name}" in cmdline) and 'python' in cmdline:
+                    # Use cached cpu_percent from process_iter (no blocking)
+                    cpu = proc.info.get('cpu_percent', 0.0) or 0.0
                     process_counts[proc_name].append({
                         'pid': proc.info['pid'],
                         'cpu': cpu
@@ -162,11 +171,6 @@ def check_docker_containers() -> Dict:
             if len(parts) >= 2:
                 name, status = parts[0], parts[1]
                 results['containers'].append({'name': name, 'status': status})
-
-                # Docker alerts disabled - host processes are primary
-                # if 'Restarting' in status or 'Exited' in status:
-                #     results['status'] = '⚠️ ISSUES'
-                #     results['alerts'].append(f"🐳 <b>{name}</b>: {status}")
     except:
         pass  # Docker not available or not running
 
@@ -183,13 +187,23 @@ def check_system_resources() -> Dict:
     }
 
     try:
-        results['cpu'] = psutil.cpu_percent(interval=1)
+        # Take 2 readings 1 second apart for more accurate CPU measurement
+        psutil.cpu_percent(interval=None)  # Discard first reading
+        time.sleep(1)
+        results['cpu'] = psutil.cpu_percent(interval=None)
+
         results['memory'] = psutil.virtual_memory().percent
         results['disk'] = psutil.disk_usage('/').percent
 
+        # Only alert if CPU is sustained high (above threshold)
+        # Don't alert for temporary spikes from monitoring itself
         if results['cpu'] > MAX_CPU_PERCENT:
-            results['status'] = '⚠️ HIGH'
-            results['alerts'].append(f"CPU: {results['cpu']:.1f}% (threshold: {MAX_CPU_PERCENT}%)")
+            # Double-check with another reading
+            time.sleep(1)
+            cpu_check2 = psutil.cpu_percent(interval=None)
+            if cpu_check2 > MAX_CPU_PERCENT:
+                results['status'] = '⚠️ HIGH'
+                results['alerts'].append(f"CPU: {results['cpu']:.1f}% sustained (threshold: {MAX_CPU_PERCENT}%)")
 
         if results['memory'] > MAX_MEMORY_PERCENT:
             results['status'] = '⚠️ HIGH'
@@ -278,8 +292,8 @@ def check_datasets(state: Dict) -> Dict:
                     results['recommendations'].append(
                         f"🎯 {len(attacks)} honeypot attacks logged. Good dataset for training!"
                     )
-        except:
-            pass
+        except Exception as e:
+            log(f"Error checking honeypot attacks: {e}", "ERROR")
 
     return results
 
@@ -303,7 +317,8 @@ def check_training_status(state: Dict) -> Dict:
         if nvidia_output.strip():
             results['gpu_available'] = True
             results['gpu_info'] = nvidia_output.strip().split(',')[0]
-    except:
+    except Exception as e:
+        log(f"Error checking GPU: {e}", "ERROR")
         results['recommendations'].append(
             "💻 GPU not detected. Training will use CPU (slower)."
         )
@@ -354,8 +369,8 @@ def check_log_health() -> Dict:
 
             if size_mb > MAX_LOG_SIZE_MB:
                 results['oversized'].append(f"{log_file.name}: {size_mb:.1f}MB")
-        except:
-            continue
+        except Exception as e:
+            log(f"Error checking log file {log_file}: {e}", "ERROR")
 
     if results['oversized']:
         results['status'] = '⚠️ LARGE'
@@ -372,146 +387,132 @@ def generate_improvement_suggestions(all_results: Dict) -> List[str]:
     # Dataset suggestions
     if all_results['datasets']['total_size_mb'] < 100:
         suggestions.append(
-            "📈 Dataset Size: Consider running longer data collection cycles to build robust training data."
-        )
-
-    # Training suggestions
-    if all_results['training']['training_data_ready'] and all_results['training']['days_since_training'] and all_results['training']['days_since_training'] > 3:
-        suggestions.append(
-            "🎓 Training Overdue: Fresh data available. Schedule weekly GPU training for best results."
-        )
-
-    # Performance suggestions
-    if all_results['resources']['cpu'] > 70:
-        suggestions.append(
-            "⚡ High CPU: Consider distributing workload or upgrading to more cores."
+            "📈 Dataset Size: Total datasets < 100MB. Run honeypot and agent collection to gather more data."
         )
 
     # Process suggestions
-    if len(all_results['processes']['high_cpu']) > 0:
+    if all_results['processes']['missing']:
         suggestions.append(
-            "🔧 Process Optimization: Review high-CPU processes for optimization opportunities."
+            f"🔄 Restart missing processes: {', '.join(all_results['processes']['missing'])}"
         )
+
+    # Resource suggestions
+    if all_results['resources']['cpu'] > MAX_CPU_PERCENT:
+        suggestions.append(
+            f"⚡ High CPU usage ({all_results['resources']['cpu']:.1f}%). Consider optimizing or scaling."
+        )
+
+    if all_results['resources']['memory'] > MAX_MEMORY_PERCENT:
+        suggestions.append(
+            f"💾 High memory usage ({all_results['resources']['memory']:.1f}%). Check for memory leaks."
+        )
+
+    # Training suggestions from dataset check
+    if 'recommendations' in all_results.get('datasets', {}):
+        suggestions.extend(all_results['datasets']['recommendations'])
+
+    # Training suggestions from training check
+    if 'recommendations' in all_results.get('training', {}):
+        suggestions.extend(all_results['training']['recommendations'])
 
     return suggestions
 
-def print_report(all_results: Dict):
-    """Print comprehensive status report"""
-    print("\n" + "="*70)
-    print("🔍 SYNEXS COMPREHENSIVE SYSTEM MONITOR")
-    print("="*70)
-    print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print()
-
-    # Processes
-    print("📋 PROCESSES:", all_results['processes']['status'])
-    print(f"   Running: {len(all_results['processes']['running'])}")
-    if all_results['processes']['missing']:
-        print(f"   Missing: {', '.join(all_results['processes']['missing'])}")
-    if all_results['processes']['excess']:
-        print(f"   Excess: {', '.join(all_results['processes']['excess'])}")
-    print()
-
-    # Docker
-    if all_results['docker']['containers']:
-        print("🐳 DOCKER:", all_results['docker']['status'])
-        for container in all_results['docker']['containers']:
-            print(f"   {container['name']}: {container['status']}")
-        print()
-
-    # Resources
-    print("💻 RESOURCES:", all_results['resources']['status'])
-    print(f"   CPU: {all_results['resources']['cpu']:.1f}%")
-    print(f"   Memory: {all_results['resources']['memory']:.1f}%")
-    print(f"   Disk: {all_results['resources']['disk']:.1f}%")
-    print()
-
-    # Datasets
-    print("📊 DATASETS:", all_results['datasets']['status'])
-    print(f"   Total Size: {all_results['datasets']['total_size_mb']:.1f}MB")
-    for ds_name, ds_info in all_results['datasets']['datasets'].items():
-        print(f"   {ds_name}: {ds_info['size_mb']:.1f}MB ({ds_info['file_count']} files)")
-    print()
-
-    # Training
-    print("🎓 TRAINING:", all_results['training']['status'])
-    print(f"   GPU Available: {'Yes (' + all_results['training'].get('gpu_info', '') + ')' if all_results['training']['gpu_available'] else 'No'}")
-    if all_results['training'].get('batch_count'):
-        print(f"   Training Batches: {all_results['training']['batch_count']}")
-    if all_results['training']['days_since_training']:
-        print(f"   Days Since Training: {all_results['training']['days_since_training']}")
-    print()
-
-    # Logs
-    print("📁 LOGS:", all_results['logs']['status'])
-    print(f"   Total Size: {all_results['logs']['total_size_mb']:.1f}MB")
-    if all_results['logs']['oversized']:
-        print(f"   Oversized: {len(all_results['logs']['oversized'])} files")
-    print()
-
-    # Recommendations
-    if all_results['recommendations']:
-        print("💡 RECOMMENDATIONS:")
-        for rec in all_results['recommendations']:
-            print(f"   • {rec}")
-        print()
-
-    print("="*70)
-
-def run_comprehensive_check() -> Dict:
-    """Run all checks and return comprehensive results"""
-    log("Starting comprehensive system check...", "INFO")
+def main():
+    """Main monitoring loop"""
+    log("=" * 60)
+    log("Synexs Comprehensive Monitor Starting")
+    log("=" * 60)
 
     state = load_state()
+    all_results = {}
 
-    all_results = {
-        'timestamp': datetime.now().isoformat(),
-        'processes': check_processes(),
-        'docker': check_docker_containers(),
-        'resources': check_system_resources(),
-        'datasets': check_datasets(state),
-        'training': check_training_status(state),
-        'logs': check_log_health(),
-        'recommendations': []
-    }
+    # Run all checks
+    log("Checking processes...")
+    all_results['processes'] = check_processes()
 
-    # Gather all recommendations
-    for category in ['processes', 'docker', 'resources', 'datasets', 'training', 'logs']:
-        if 'recommendations' in all_results[category]:
-            all_results['recommendations'].extend(all_results[category]['recommendations'])
+    log("Checking system resources...")
+    all_results['resources'] = check_system_resources()
 
-    # Add improvement suggestions
-    all_results['recommendations'].extend(generate_improvement_suggestions(all_results))
+    log("Checking datasets...")
+    all_results['datasets'] = check_datasets(state)
 
-    # Gather all alerts
+    log("Checking training status...")
+    all_results['training'] = check_training_status(state)
+
+    log("Checking log health...")
+    all_results['logs'] = check_log_health()
+
+    log("Checking Docker containers...")
+    all_results['docker'] = check_docker_containers()
+
+    # Generate report
     alerts = []
-    for category in ['processes', 'docker', 'resources', 'datasets', 'training', 'logs']:
-        if 'alerts' in all_results[category]:
-            alerts.extend(all_results[category]['alerts'])
+    for category, results in all_results.items():
+        if results.get('alerts'):
+            alerts.extend(results['alerts'])
 
-    # Send Telegram alert if there are critical issues
+    suggestions = generate_improvement_suggestions(all_results)
+
+    # Build summary report
+    report_lines = [
+        "🔍 <b>Synexs System Monitor Report</b>",
+        f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        f"🖥️ <b>Processes:</b> {all_results['processes']['status']}",
+        f"  Running: {', '.join(all_results['processes']['running'][:5]) or 'None'}",
+    ]
+
+    if all_results['processes']['missing']:
+        report_lines.append(f"  ⛔ Missing: {', '.join(all_results['processes']['missing'])}")
+
+    if all_results['processes']['excess']:
+        report_lines.append(f"  ⚠️ Excess: {', '.join(all_results['processes']['excess'])}")
+
+    report_lines.extend([
+        "",
+        f"💻 <b>Resources:</b> {all_results['resources']['status']}",
+        f"  CPU: {all_results['resources']['cpu']:.1f}% | Memory: {all_results['resources']['memory']:.1f}% | Disk: {all_results['resources']['disk']:.1f}%",
+        "",
+        f"📊 <b>Datasets:</b> {all_results['datasets']['total_size_mb']:.1f}MB total",
+    ])
+
+    for dataset_name, dataset_info in list(all_results['datasets']['datasets'].items())[:3]:
+        report_lines.append(f"  {dataset_name}: {dataset_info['size_mb']:.1f}MB ({dataset_info['file_count']} files)")
+
+    if all_results['training'].get('gpu_available'):
+        report_lines.append(f"\n🎮 <b>GPU:</b> {all_results['training'].get('gpu_info', 'Available')}")
+
+    if all_results['training'].get('training_data_ready'):
+        report_lines.append(f"🎓 <b>Training:</b> {all_results['training'].get('batch_count', 0)} batches ready")
+
+    # Add alerts
     if alerts:
-        alert_message = f"🚨 <b>Synexs System Alert</b>\n\n" + "\n\n".join(alerts[:5])
-        send_telegram(alert_message)
-        log(f"Sent {len(alerts)} alerts via Telegram", "WARN")
+        report_lines.append("\n⚠️ <b>ALERTS:</b>")
+        for alert in alerts[:5]:
+            report_lines.append(f"  {alert}")
 
-    # Print report
-    print_report(all_results)
+    # Add suggestions
+    if suggestions:
+        report_lines.append("\n💡 <b>SUGGESTIONS:</b>")
+        for suggestion in suggestions[:5]:
+            report_lines.append(f"  {suggestion}")
+
+    report = "\n".join(report_lines)
+
+    # Log summary
+    log("\n" + report.replace('<b>', '').replace('</b>', ''))
+
+    # Send alerts if there are critical issues
+    if alerts:
+        send_telegram(report)
+        state['alerts_sent'] = state.get('alerts_sent', 0) + 1
 
     # Save state
     save_state(state)
 
-    log("Comprehensive check completed", "INFO")
-
-    return all_results
-
-def main():
-    """Main entry point"""
-    if len(sys.argv) > 1 and sys.argv[1] == '--json':
-        result = run_comprehensive_check()
-        print(json.dumps(result, indent=2))
-    else:
-        run_comprehensive_check()
+    log("=" * 60)
+    log("Monitor check complete")
+    log("=" * 60)
 
 if __name__ == "__main__":
     main()

@@ -13,9 +13,12 @@ PROCESSES = [
 ]
 
 def get_live_process(name):
-    for p in psutil.process_iter(["pid", "name", "cmdline", "cpu_percent", "memory_info", "create_time"]):
-        if name in " ".join(p.info["cmdline"] or []) and "python" in " ".join(p.info["cmdline"] or []):
-            return "RUNNING", f"{p.info['cpu_percent']:.1f}", f"{p.info['memory_info'].rss / 1024 ** 2:.1f}MB", f"{int((time.time() - p.info['create_time']) // 3600)}h {int(((time.time() - p.info['create_time']) % 3600) // 60)}m {int((time.time() - p.info['create_time']) % 60)}s", str(p.info["pid"])
+    try:
+        for p in psutil.process_iter(["pid", "name", "cmdline", "cpu_percent", "memory_info", "create_time"]):
+            if name in " ".join(p.info["cmdline"] or []) and "python" in " ".join(p.info["cmdline"] or []):
+                return "RUNNING", f"{p.info['cpu_percent']:.1f}", f"{p.info['memory_info'].rss / 1024 ** 2:.1f}MB", f"{int((time.time() - p.info['create_time']) // 3600)}h {int(((time.time() - p.info['create_time']) % 3600) // 60)}m {int((time.time() - p.info['create_time']) % 60)}s", str(p.info["pid"])
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        pass
     return "DOWN", "0.0", "0.0MB", "Never", "-"
 
 def make_dashboard():
@@ -28,12 +31,9 @@ def make_dashboard():
     table.add_column("PID", style="dim")
 
     for proc in PROCESSES:
-        try:
-            status, cpu, ram, uptime, pid = get_live_process(proc)
-            color = "green" if status == "RUNNING" else "red" if status == "DOWN" else "yellow"
-            table.add_row(proc, f"[{color}]{status}[/{color}]", cpu, ram, uptime, pid)
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-            table.add_row(proc, "[red]N/A[/red]", "N/A", "N/A", "N/A", "N/A")
+        status, cpu, ram, uptime, pid = get_live_process(proc)
+        color = "green" if status == "RUNNING" else "red" if status == "DOWN" else "yellow"
+        table.add_row(proc, f"[{color}]{status}[/{color}]", cpu, ram, uptime, pid)
 
     try:
         cpu_total = psutil.cpu_percent(interval=1)

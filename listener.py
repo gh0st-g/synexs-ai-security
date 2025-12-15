@@ -138,7 +138,7 @@ def enrich_and_train(ip: str):
     # Generate training sample if CVE found
     vulns = intel.get("vulns", []) or []
     if vulns:
-        actions = ["SCAN", "VULN", "EXPLOIT"]
+        actions = ["SCAN", "ATTACK", "REFINE"]
         binary = encode_base64(actions)
 
         # Prepare data

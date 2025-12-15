@@ -66,28 +66,90 @@
     }
   },
   "current_week": {
-    "start_date": "2025-11-13T04:28:27.079468",
+    "start_date": "2025-12-13T09:00:02.464625",
     "progress": {
       "missions_generated": 300032,
-      "dataset_growth_mb": 60.27,
+      "dataset_growth_mb": 77.64,
       "gpu_training_runs": 0,
-      "honeypot_attacks": 16,
+      "honeypot_attacks": 19,
       "model_accuracy": 0
     }
   },
   "current_month": {
-    "start_date": "2025-11-13T04:28:27.079488",
+    "start_date": "2025-12-13T09:00:02.464649",
     "progress": {
       "total_missions": 300032,
-      "dataset_size_gb": 0.06,
+      "dataset_size_gb": 0.08,
       "model_versions": 0,
       "system_uptime": 0,
       "documentation_updates": 0
     }
   },
   "history": {
-    "weekly": [],
-    "monthly": []
+    "weekly": [
+      {
+        "start_date": "2025-11-13T04:28:27.079468",
+        "end_date": "2025-11-20T09:00:02.872030",
+        "progress": {
+          "missions_generated": 300032,
+          "dataset_growth_mb": 70.61,
+          "gpu_training_runs": 0,
+          "honeypot_attacks": 16,
+          "model_accuracy": 0
+        },
+        "completed": 34.44
+      },
+      {
+        "start_date": "2025-11-20T09:00:02.872076",
+        "end_date": "2025-11-28T09:00:02.851893",
+        "progress": {
+          "missions_generated": 300032,
+          "dataset_growth_mb": 69.37,
+          "gpu_training_runs": 0,
+          "honeypot_attacks": 19,
+          "model_accuracy": 0
+        },
+        "completed": 34.25
+      },
+      {
+        "start_date": "2025-11-28T09:00:02.851939",
+        "end_date": "2025-12-06T09:00:02.258099",
+        "progress": {
+          "missions_generated": 300032,
+          "dataset_growth_mb": 77.78,
+          "gpu_training_runs": 0,
+          "honeypot_attacks": 19,
+          "model_accuracy": 0
+        },
+        "completed": 35.94
+      },
+      {
+        "start_date": "2025-12-06T09:00:02.258139",
+        "end_date": "2025-12-13T09:00:02.464584",
+        "progress": {
+          "missions_generated": 300032,
+          "dataset_growth_mb": 77.66,
+          "gpu_training_runs": 0,
+          "honeypot_attacks": 19,
+          "model_accuracy": 0
+        },
+        "completed": 35.91
+      }
+    ],
+    "monthly": [
+      {
+        "start_date": "2025-11-13T04:28:27.079488",
+        "end_date": "2025-12-13T09:00:02.464639",
+        "progress": {
+          "total_missions": 300032,
+          "dataset_size_gb": 0.08,
+          "model_versions": 0,
+          "system_uptime": 0,
+          "documentation_updates": 0
+        },
+        "completed": 21.6
+      }
+    ]
   },
-  "last_reminder": null
+  "last_reminder": "2025-12-11T09:00:07.878801"
 }

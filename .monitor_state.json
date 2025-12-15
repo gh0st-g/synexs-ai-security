@@ -1,11 +1,11 @@
 {
-  "last_check": "2025-11-14T00:31:54.838495",
+  "last_check": "2025-12-15T00:00:24.668031",
   "dataset_sizes": {
-    "datasets/honeypot": 0.0026082992553710938,
+    "datasets/honeypot": 0.0036334991455078125,
     "datasets/agents": 0.0,
     "training_logs": 2263.192774772644
   },
   "training_runs": [],
   "last_training": null,
-  "alerts_sent": 0
+  "alerts_sent": 108
 }

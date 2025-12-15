@@ -1,0 +1,88 @@
+{
+  "organism_id": "synexs_production_alpha",
+  "generation": 0,
+  "age": 60,
+  "health": 1.0,
+  "fitness": 0.8500000000000003,
+  "genetics": {
+    "generation": 0,
+    "population_size": 4
+  },
+  "immune_system": {
+    "antigens_known": 1,
+    "antibodies_available": 21,
+    "memory_cells": 0,
+    "active_responses": 0,
+    "total_encounters": 7,
+    "success_rate": 1.0,
+    "innate_immunity": [
+      "honeypot",
+      "rate_limit",
+      "firewall",
+      "ids",
+      "waf"
+    ]
+  },
+  "metabolism": {
+    "state": "resting",
+    "stress_level": 0.0,
+    "efficiency": 1.0,
+    "resources": {
+      "energy": {
+        "current": 100.0,
+        "maximum": 100.0,
+        "percentage": 100.0,
+        "regeneration": 5.9638757016924595,
+        "consumption": 0.0,
+        "critical": false
+      },
+      "memory": {
+        "current": 100.0,
+        "maximum": 100.0,
+        "percentage": 100.0,
+        "regeneration": 1.8240907598819591,
+        "consumption": 0.0,
+        "critical": false
+      },
+      "bandwidth": {
+        "current": 100.0,
+        "maximum": 100.0,
+        "percentage": 100.0,
+        "regeneration": 1.0945785828817518,
+        "consumption": 0.0,
+        "critical": false
+      },
+      "attention": {
+        "current": 100.0,
+        "maximum": 100.0,
+        "percentage": 100.0,
+        "regeneration": 2.778020491751082,
+        "consumption": 0.0,
+        "critical": false
+      },
+      "time": {
+        "current": 100.0,
+        "maximum": 100.0,
+        "percentage": 100.0,
+        "regeneration": 2.735783211953806,
+        "consumption": 0.0,
+        "critical": false
+      }
+    },
+    "active_processes": 0,
+    "queued_processes": 0
+  },
+  "cells": {
+    "total": 15,
+    "by_type": {
+      "executor": 2,
+      "scout": 2,
+      "analyzer": 2,
+      "defender": 2,
+      "learner": 2,
+      "communicator": 2,
+      "replicator": 1,
+      "stem": 2
+    }
+  }
+}

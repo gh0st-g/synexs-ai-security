@@ -28,8 +28,9 @@ os.makedirs(os.path.dirname(DECISIONS_PATH), exist_ok=True)
 
 # Load vocab and model
 vocab = load_vocab()
-vocab_size = len(vocab)
-model = SynexsCoreModel(vocab_size)
+vocab_size = max(vocab.values()) + 1  # Use max index + 1, not len(vocab)
+num_actions = len([k for k in vocab.keys() if not k.startswith('<')])
+model = SynexsCoreModel(vocab_size, output_dim=num_actions)
 model.load_state_dict(torch.load(MODEL_PATH, map_location=torch.device('cpu')))  # Use CPU for efficiency on VPS
 model.eval()
 
@@ -77,7 +78,8 @@ def main():
             seq_data = data.get("sequences", []) if isinstance(data, dict) else data if isinstance(data, list) else []
             for entry in seq_data:
                 if isinstance(entry, dict):
-                    seq = entry.get("sequence", "")
+                    # Try both "sequence" and "refined" keys
+                    seq = entry.get("sequence") or entry.get("refined") or ""
                 elif isinstance(entry, str):
                     seq = entry
                 if seq:
@@ -90,10 +92,24 @@ def main():
 
     if sequences:
         decisions = classify_sequences(sequences)
+        # Pair sequences with their predicted actions
+        decision_pairs = []
+        for seq, action in zip(sequences, decisions):
+            decision_pairs.append({
+                "sequence": seq,
+                "action": action
+            })
+
         try:
             with open(DECISIONS_PATH, "w") as f:
-                json.dump({"decisions": decisions}, f, indent=4)
-            print(f"✅ [cell_006] Classified {len(sequences)} sequences and saved decisions.")
+                json.dump({"decisions": decision_pairs}, f, indent=4)
+            print(f"✅ [cell_006] Classified {len(sequences)} sequences and saved {len(decision_pairs)} decisions.")
+
+            # Print action distribution for monitoring
+            action_counts = {}
+            for action in decisions:
+                action_counts[action] = action_counts.get(action, 0) + 1
+            print(f"   Action distribution: {action_counts}")
         except Exception as e:
             print(f"❌ [cell_006] Error saving decisions: {e}")
     else:

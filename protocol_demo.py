@@ -114,6 +114,7 @@ def main():
             demo_message(title, actions)
         except Exception as e:
             logging.error(f"Error in demo_message: {e}")
+            logging.exception(e)
 
     logging.info(f"\n{'='*80}")
     logging.info("📊 SUMMARY")

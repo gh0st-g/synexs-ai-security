@@ -33,7 +33,7 @@ def train_model():
         logging.info("Loading training data...")
         data = load_dataset("json", data_files="training_binary_v3.jsonl", split="train")
 
-        logging.info("Starting training (200 steps)...")
+        logging.info("Starting training (500 steps)...")
         trainer = SFTTrainer(
             model=model,
             tokenizer=tokenizer,
@@ -41,15 +41,15 @@ def train_model():
             dataset_text_field="output",
             max_seq_length=512,
             args=TrainingArguments(
-                per_device_train_batch_size=1,
-                gradient_accumulation_steps=8,
-                warmup_steps=5,
-                max_steps=200,
-                learning_rate=2e-4,
+                per_device_train_batch_size=2,
+                gradient_accumulation_steps=4,
+                warmup_steps=50,
+                max_steps=500,
+                learning_rate=1e-4,
                 fp16=True,
                 logging_steps=10,
                 output_dir="synexs-brain",
-                save_steps=50,
+                save_steps=100,
                 report_to="none"
             ),
         )
@@ -59,6 +59,12 @@ def train_model():
         logging.info("BRAIN TRAINED! Saved to synexs-brain-final")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
+        raise
 
 if __name__ == "__main__":
-    train_model()
+    while True:
+        try:
+            train_model()
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            logging.info("Restarting training...")

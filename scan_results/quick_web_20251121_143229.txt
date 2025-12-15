@@ -1,0 +1,58 @@
+# Nmap 7.80 scan initiated Fri Nov 21 14:32:54 2025 as: nmap -p 80,443,8080,8443,3000,5000,8000 --script http-enum,http-methods,http-headers,http-title,ssl-enum-ciphers -oN ./scan_results/quick_web_20251121_143229.txt synexs.net
+Nmap scan report for synexs.net (192.0.78.24)
+Host is up (0.0021s latency).
+
+PORT     STATE    SERVICE
+80/tcp   open     http
+| http-headers: 
+|   Server: nginx
+|   Date: Fri, 21 Nov 2025 14:32:57 GMT
+|   Content-Type: text/html
+|   Content-Length: 162
+|   Connection: close
+|   Location: https://synexs.net/
+|   Alt-Svc: h3=":443"; ma=86400
+|   Server-Timing: a8c-cdn, dc;desc=jfk, cache;desc=BYPASS;dur=0.0
+|   
+|_  (Request type: GET)
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-title: Did not follow redirect to https://synexs.net/
+443/tcp  open     https
+| http-headers: 
+|   Server: nginx
+|   Date: Fri, 21 Nov 2025 14:32:57 GMT
+|   Content-Type: text/html; charset=UTF-8
+|   Connection: close
+|   Strict-Transport-Security: max-age=31536000
+|   Vary: Accept-Encoding
+|   X-hacker: Want root?  Visit join.a8c.com/hacker and mention this header.
+|   Host-Header: WordPress.com
+|   Vary: accept, content-type, cookie
+|   X-ac: 17.jfk _dfw HIT
+|   Alt-Svc: h3=":443"; ma=86400
+|   Server-Timing: a8c-cdn, dc;desc=jfk, cache;desc=HIT;dur=1.0
+|   
+|_  (Request type: HEAD)
+| http-methods: 
+|_  Supported Methods: GET HEAD POST OPTIONS
+|_http-title: Synexs
+| ssl-enum-ciphers: 
+|   TLSv1.2: 
+|     ciphers: 
+|       TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA (ecdh_x25519) - A
+|       TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 (ecdh_x25519) - A
+|       TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA (ecdh_x25519) - A
+|       TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384 (ecdh_x25519) - A
+|       TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256 (ecdh_x25519) - A
+|     compressors: 
+|       NULL
+|     cipher preference: client
+|_  least strength: A
+3000/tcp filtered ppp
+5000/tcp filtered upnp
+8000/tcp filtered http-alt
+8080/tcp filtered http-proxy
+8443/tcp filtered https-alt
+
+# Nmap done at Fri Nov 21 14:33:14 2025 -- 1 IP address (1 host up) scanned in 19.88 seconds

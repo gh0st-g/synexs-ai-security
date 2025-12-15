@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('test_fast_system.log'),
+        logging.FileHandler('test_fast_system.log', mode='a'),
         logging.StreamHandler(sys.stdout)
     ]
 )

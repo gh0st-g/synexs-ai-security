@@ -45,6 +45,16 @@
         "expect_key": "status",
         "expect_value": "healthy"
       }
+    },
+    {
+      "name": "propagate_v3",
+      "script": "/root/synexs/propagate_v3.py",
+      "python": "/usr/bin/python3",
+      "working_dir": "/root/synexs",
+      "args": [],
+      "enabled": false,
+      "health_check": null,
+      "note": "Runs via cron every 2 hours - not a continuous process"
     }
   ],
   "services": [

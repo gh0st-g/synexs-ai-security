@@ -22,7 +22,7 @@ def do_processing(value: int) -> int:
 def recover_from_error(value: int) -> int:
     return value // 2
 
-def main(cell_data: List[Tuple[int, int]]) -> None:
+def main(cell_data: List[Tuple[int, int]]) -> List[int]:
     start_time = time.time()
     max_workers = max(1, os.cpu_count() * 2)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -30,12 +30,14 @@ def main(cell_data: List[Tuple[int, int]]) -> None:
         results = [future.result() for future in as_completed(futures)]
     end_time = time.time()
     logging.info(f"Total processing time: {end_time - start_time:.2f} seconds")
+    return results
 
 def run_continuously(interval: float = 60.0) -> None:
     while True:
         try:
             cell_data = [(1, 10), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60), (7, 70), (8, 80)]
-            main(cell_data)
+            results = main(cell_data)
+            logging.info(f"Processing results: {results}")
             time.sleep(interval)
         except KeyboardInterrupt:
             logging.info("Received keyboard interrupt, exiting...")

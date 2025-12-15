@@ -7,6 +7,7 @@ Replaces verbose Greek words with compact symbolic tokens
 import json
 import random
 import logging
+import sys
 
 # ==================== Protocol Definition ====================
 
@@ -210,7 +211,7 @@ def main():
         print(f"✅ Generated 50 training samples: training_symbolic_v2.jsonl")
     except Exception as e:
         logging.error(f"Error in main: {e}")
-        raise
+        sys.exit(1)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.ERROR, format='%(asctime)s %(levelname)s: %(message)s')
@@ -218,4 +219,4 @@ if __name__ == "__main__":
         main()
     except Exception as e:
         logging.error(f"Unhandled exception: {e}")
-        raise
+        sys.exit(1)

@@ -1,0 +1,115 @@
+{
+  "version": "3.0",
+  "protocol": "v3",
+  "description": "AI Decision Engine Configuration - V3 Binary Protocol Support",
+
+  "ai_mode": {
+    "enabled": true,
+    "shadow_mode": true,
+    "fallback_enabled": true,
+    "gradual_rollout_percentage": 0
+  },
+
+  "model": {
+    "path": "synexs_core_model.pth",
+    "vocab_path": "vocab_v3_binary.json",
+    "protocol": "v3",
+    "confidence_threshold": 0.6,
+    "batch_prediction": true
+  },
+
+  "training": {
+    "auto_retrain": true,
+    "retrain_every_n_cycles": 100,
+    "min_samples_for_retrain": 500,
+    "training_data_path": "datasets/core_training/train_data.json",
+    "backup_model_before_retrain": true,
+    "validation_split": 0.2
+  },
+
+  "data_collection": {
+    "enabled": true,
+    "collect_from_cycles": true,
+    "save_predictions": true,
+    "training_buffer_size": 1000,
+    "export_format": "v3_binary"
+  },
+
+  "logging": {
+    "decision_log_path": "ai_decisions_log.jsonl",
+    "log_all_predictions": true,
+    "log_confidence_scores": true,
+    "verbose": false
+  },
+
+  "performance": {
+    "use_gpu": false,
+    "batch_size": 32,
+    "max_sequence_length": 50,
+    "cache_predictions": true
+  },
+
+  "protocols": {
+    "v1": {
+      "enabled": true,
+      "name": "Greek Words",
+      "description": "Legacy protocol for backward compatibility"
+    },
+    "v2": {
+      "enabled": true,
+      "name": "Symbols",
+      "description": "Symbolic protocol (46% reduction)"
+    },
+    "v3": {
+      "enabled": true,
+      "name": "Binary",
+      "description": "Production binary protocol (88% reduction)",
+      "default": true
+    }
+  },
+
+  "shadow_mode": {
+    "description": "AI runs and logs decisions but doesn't affect system",
+    "log_comparisons": true,
+    "compare_with_rules": true,
+    "duration_cycles": 10,
+    "auto_disable_after_cycles": false
+  },
+
+  "gradual_rollout": {
+    "description": "Gradually increase AI decision percentage",
+    "stages": [
+      {"cycles": 10, "percentage": 10, "description": "Initial 10%"},
+      {"cycles": 20, "percentage": 25, "description": "Increase to 25%"},
+      {"cycles": 30, "percentage": 50, "description": "Half AI, half rules"},
+      {"cycles": 50, "percentage": 75, "description": "Mostly AI"},
+      {"cycles": 100, "percentage": 100, "description": "Full AI mode"}
+    ]
+  },
+
+  "actions": {
+    "v3_actions": [
+      "SCAN", "ATTACK", "REPLICATE", "MUTATE", "EVADE",
+      "LEARN", "REPORT", "DEFEND", "REFINE", "FLAG",
+      "XOR_PAYLOAD", "ENCRYPT", "COMPRESS", "HASH_CHECK", "SYNC",
+      "SPLIT", "MERGE", "STACK_PUSH", "STACK_POP", "TERMINATE",
+      "PAUSE", "LOG", "QUERY", "ACK", "NACK",
+      "CHECKPOINT", "VALIDATE", "BROADCAST", "LISTEN", "ROUTE",
+      "FILTER", "TRANSFORM"
+    ],
+    "default_action": "SCAN",
+    "fallback_action": "REFINE"
+  },
+
+  "monitoring": {
+    "track_metrics": true,
+    "metrics": [
+      "ai_decision_rate",
+      "rule_decision_rate",
+      "average_confidence",
+      "prediction_accuracy",
+      "training_samples_collected",
+      "retraining_count"
+    ]
+  }
+}

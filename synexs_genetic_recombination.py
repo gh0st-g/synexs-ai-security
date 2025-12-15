@@ -41,7 +41,7 @@ class GeneticRecombinator:
     def __init__(self, mutation_rate=0.05, fitness_threshold=0.6):
         self.mutation_rate = mutation_rate
         self.fitness_threshold = fitness_threshold
-        self.gene_pool = {}  # agent_id -> GeneticProfile
+        self.gene_pool: Dict[str, GeneticProfile] = {}
         self.generation = 0
         self.population_history = []
 
@@ -276,12 +276,15 @@ class GeneticRecombinator:
         new_generation = []
 
         for _ in range(num_offspring):
-            # Select two parents
-            parent1_id, parent2_id = self.select_parents(2)
+            try:
+                # Select two parents
+                parent1_id, parent2_id = self.select_parents(2)
 
-            # Create offspring through sexual reproduction
-            offspring = self.sexual_reproduction(parent1_id, parent2_id)
-            new_generation.append(offspring)
+                # Create offspring through sexual reproduction
+                offspring = self.sexual_reproduction(parent1_id, parent2_id)
+                new_generation.append(offspring)
+            except Exception as e:
+                print(f"Error creating offspring: {e}")
 
         self.generation += 1
 
@@ -403,35 +406,4 @@ TRAIT DISTRIBUTION (Population Averages):
             bar = '█' * int(value * 20)
             report += f"  {trait:15s}: {bar:20s} {value:.3f}\n"
 
-        report += f"""
-MOST FIT AGENT:
-  ID: {best_agent_id}
-  Fitness: {best_agent.fitness_score:.3f}
-  Age: {best_agent.age} generations
-  Traits:
-"""
-
-        for trait, value in best_agent.traits.items():
-            report += f"    {trait:15s}: {value:.3f}\n"
-
-        report += "\n" + "═" * 60 + "\n"
-
-        return report
-
-    def _calculate_population_traits(self) -> dict:
-        """Calculate average trait values across population"""
-        if not self.gene_pool:
-            return {}
-
-        trait_sums = {}
-        trait_counts = {}
-
-        for profile in self.gene_pool.values():
-            for trait, value in profile.traits.items():
-                trait_sums[trait] = trait_sums.get(trait, 0.0) + value
-                trait_counts[trait] = trait_counts.get(trait, 0) + 1
-
-        return {
-            trait: trait_sums[trait] / trait_counts[trait]
-            for trait in trait_sums
-        }
+        report += f
