@@ -1,5 +1,3 @@
-# ~/synexs/listener.py
-from utils.telegram_notify import send_telegram
 import logging
 import logging.handlers
 import time
@@ -12,14 +10,15 @@ import threading
 from datetime import datetime
 from typing import Optional
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import redis
 
 # --- External Intel ---
 try:
     from utils.external_intel import shodan_lookup, nmap_scan
     from binary_protocol import encode_base64
     INTEL_AVAILABLE = True
-except Exception as e:
-    logging.warning(f"Intel module not available: {e}. Running in basic mode.")
+except ImportError:
+    logging.warning("Intel module not available. Running in basic mode.")
     INTEL_AVAILABLE = False
 
 # --- Database ---
@@ -27,8 +26,8 @@ try:
     from db.database import get_db
     from db.models import Attack
     DATABASE_AVAILABLE = True
-except Exception as e:
-    logging.warning(f"Database module not available: {e}. Falling back to JSONL.")
+except ImportError:
+    logging.warning("Database module not available. Falling back to JSONL.")
     DATABASE_AVAILABLE = False
 
 # PID & Logging
@@ -69,7 +68,9 @@ class HealthHandler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
-    def log_message(self, *args): pass
+
+    def log_message(self, *args):
+        pass
 
 def start_health_server():
     try:
@@ -97,13 +98,15 @@ def release_pid_lock():
             fcntl.flock(lock_fp, fcntl.LOCK_UN)
             lock_fp.close()
             os.remove(PID_FILE)
-        except: pass
+        except:
+            pass
 
 # Signal Handling
 def signal_handler(sig, frame):
     global running
     logging.info("Shutting down...")
     running = False
+
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
@@ -121,7 +124,8 @@ def enrich_and_train(ip: str):
         try:
             with open(cache_file) as f:
                 intel = json.load(f)
-        except: pass
+        except:
+            pass
 
     if intel is None:
         try:
@@ -146,8 +150,8 @@ def enrich_and_train(ip: str):
         output = f"Execute: {' → '.join(actions)}"
 
         # Save to PostgreSQL (preferred) or JSONL (fallback)
-        if DATABASE_AVAILABLE:
-            try:
+        try:
+            if DATABASE_AVAILABLE:
                 with get_db() as db:
                     attack = Attack(
                         ip=ip,
@@ -175,9 +179,8 @@ def enrich_and_train(ip: str):
                     db.add(attack)
                     db.commit()
                 logging.info(f"Attack saved to DB: {ip} → {vulns[0]}")
-            except Exception as e:
-                logging.error(f"Database write failed: {e}, falling back to JSONL")
-                # Fallback to JSONL
+            else:
+                # JSONL fallback
                 sample = {
                     "instruction": instruction,
                     "input": f"binary:{binary}",
@@ -190,20 +193,8 @@ def enrich_and_train(ip: str):
                 }
                 with open("training_binary_v3.jsonl", "a") as f:
                     f.write(json.dumps(sample) + "\n")
-        else:
-            # JSONL fallback
-            sample = {
-                "instruction": instruction,
-                "input": f"binary:{binary}",
-                "output": output,
-                "actions": actions,
-                "protocol": "v3",
-                "format": "base64",
-                "source": "shodan_nmap",
-                "timestamp": intel["timestamp"]
-            }
-            with open("training_binary_v3.jsonl", "a") as f:
-                f.write(json.dumps(sample) + "\n")
+        except Exception as e:
+            logging.error(f"Database/JSONL write failed: {e}")
 
         training_samples_added += 1
         logging.info(f"Training sample added: {ip} → {vulns[0]}")
@@ -218,7 +209,6 @@ def enrich_and_train(ip: str):
 # --- Redis Listener ---
 def listen():
     global message_count, error_count, last_message_time
-    import redis
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)
     r.ping()
 
@@ -239,7 +229,8 @@ def listen():
 
 # --- Main ---
 def main():
-    if not acquire_pid_lock(): return
+    if not acquire_pid_lock():
+        return
     threading.Thread(target=start_health_server, daemon=True).start()
     try:
         logging.info("Synexs Listener STARTED")

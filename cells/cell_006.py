@@ -93,12 +93,7 @@ def main():
     if sequences:
         decisions = classify_sequences(sequences)
         # Pair sequences with their predicted actions
-        decision_pairs = []
-        for seq, action in zip(sequences, decisions):
-            decision_pairs.append({
-                "sequence": seq,
-                "action": action
-            })
+        decision_pairs = [{"sequence": seq, "action": action} for seq, action in zip(sequences, decisions)]
 
         try:
             with open(DECISIONS_PATH, "w") as f:
@@ -116,4 +111,8 @@ def main():
         print("⚠️ [cell_006] No sequences to classify.")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"❌ [cell_006] Unexpected error: {e}")
+        sys.exit(1)

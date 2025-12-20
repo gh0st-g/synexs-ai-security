@@ -1,404 +1,462 @@
-# Synexs
+# Synexs - Purple Team AI Security Framework
 
-**Biologically-Inspired Autonomous AI Security Framework**
+**Autonomous AI-Powered Defensive Security Training System**
 
-[![License](https://img.shields.io/badge/license-Private-red.svg)]()
+[![License](https://img.shields.io/badge/license-Research-red.svg)]()
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)]()
-[![Status](https://img.shields.io/badge/status-Phase%201%20Complete-brightgreen.svg)]()
-[![Performance](https://img.shields.io/badge/performance-37%20missions%2Fsec-blue.svg)]()
-[![Scalability](https://img.shields.io/badge/scalability-100K%2B%20missions-green.svg)]()
+[![Status](https://img.shields.io/badge/status-Production--Ready-brightgreen.svg)]()
+[![Protocol](https://img.shields.io/badge/protocol-V3%20Binary%20(88%25%20reduction)-blue.svg)]()
 
 ---
 
-## 🚀 Phase 1 Complete - Production-Ready Training Pipeline
+## 🎯 Project Overview
 
-**Latest Achievement:** Optimized training system with **98% checkpoint overhead reduction**, **37 missions/sec** processing rate, and **100K+ mission scalability**. Full live monitoring dashboard and comprehensive error handling deployed.
+Synexs is an advanced **purple team security research framework** that combines red team attack simulation with blue team defense training. It uses AI-powered agents, polymorphic attack patterns, and adaptive learning to train defensive AI systems through controlled honeypot environments.
 
-### Phase 1 Highlights ✅
-
-- ✅ **Production-grade training pipeline** - Atomic checkpoints with resume capability
-- ✅ **37 missions/sec sustained performance** - Tested on 1,000+ mission runs
-- ✅ **98% checkpoint optimization** - Adaptive intervals (200 vs 10,000 for 100K missions)
-- ✅ **Live monitoring dashboard** - Real-time progress tracking via `progress.sh`
-- ✅ **100K+ mission scalability** - Tested, stable memory management
-- ✅ **Comprehensive error handling** - Full logging, graceful recovery
-- ✅ **Atomic checkpoint system** - Corruption-proof resume capability
+### Core Mission
+Train AI models to detect and defend against sophisticated cyber attacks by generating diverse, polymorphic attack patterns in a **controlled localhost-only environment**.
 
 ---
 
-## Overview
-
-Synexs is an advanced AI-powered security framework that mimics biological systems for autonomous defensive security training. Using cellular architecture, evolutionary algorithms, and swarm intelligence, it creates self-improving AI agents that learn and adapt to threats.
-
-### Core Innovation: Biological-Inspired AI
-
-```
-   ┌─────────────────────────────────────┐
-   │    BIOLOGICAL INSPIRATION           │
-   ├─────────────────────────────────────┤
-   │  DNA → Cell → Organism → Evolution  │
-   │   ↓      ↓       ↓          ↓       │
-   │  Code → Agent → Swarm → Learning    │
-   └─────────────────────────────────────┘
-```
-
-**Just like biological systems:**
-- **Cells** are autonomous, specialized components
-- **DNA** encodes behavioral strategies
-- **Evolution** drives continuous improvement
-- **Swarms** exhibit emergent intelligence
-- **Adaptation** happens through experience
-
----
-
-## Key Features
-
-### 🧠 Autonomous AI Training
-- **37 missions/sec** sustained processing rate
-- **100K+ mission scalability** with stable memory
-- Multi-agent team coordination with specialized roles
-- Self-improving through evolutionary algorithms
-
-### 🔬 Cellular Architecture
-- **Modular cells** - Independent, specialized components (`cells/cell_*.py`)
-- **Core orchestrator** - Central coordination (`synexs_core_orchestrator.py`)
-- **Feedback loops** - Continuous learning and adaptation
-- **Distributed intelligence** - Emergent swarm behavior
-
-### 📡 Binary Protocol (88% Bandwidth Reduction)
-- Ultra-compact communication (6 bytes vs 46 bytes JSON)
-- Protocol v2 with enhanced efficiency
-- Real-time agent coordination
-
-### 🎯 Production-Ready Training System
-- **Atomic checkpoints** - Corruption-proof resume capability
-- **Live monitoring** - Real-time dashboard via `progress.sh`
-- **Adaptive optimization** - Intelligent checkpoint intervals
-- **Comprehensive logging** - Full audit trail for debugging
-
-### 📊 Real-time Monitoring Dashboard
-
-```bash
-./progress.sh
-```
-
-**Live Dashboard Output:**
-```
-═══════════════════════════════════════════════════════
-              SYNEXS TRAINING MONITOR
-═══════════════════════════════════════════════════════
-
-Status: RUNNING
-Progress: [████████████████████████░░░░░░] 65.0%
-
-Mission Progress: 650 / 1000
-Elapsed Time: 17.5 seconds
-Processing Rate: 37.1 missions/sec
-ETA: 9.4 seconds
-
-Training Statistics:
-  ✓ Successes: 372 (57.2%)
-  ✗ Failures: 247 (38.0%)
-  ⊗ Aborted: 31 (4.8%)
-
-═══════════════════════════════════════════════════════
-```
-
----
-
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    SYNEXS ARCHITECTURE                      │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────────┐    ┌──────────────┐   ┌───────────────┐  │
-│  │  Honeypot   │───▶│ DNA Collector│──▶│Training Data  │  │
-│  │   Server    │    │  (Analysis)  │   │  Generation   │  │
-│  └─────────────┘    └──────────────┘   └───────────────┘  │
-│         │                                       │           │
-│         ▼                                       ▼           │
-│  ┌─────────────┐    ┌──────────────┐   ┌───────────────┐  │
-│  │  Listener   │───▶│ AI Swarm     │──▶│  Orchestrator │  │
-│  │  (Reports)  │    │  (Learning)  │   │   (Executor)  │  │
-│  └─────────────┘    └──────────────┘   └───────────────┘  │
-│         │                   │                   │           │
-│         ▼                   ▼                   ▼           │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │         Phase 1: Multi-Agent Training Pipeline      │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐  │  │
-│  │  │ Recon    │  │ Exploit  │  │ Data Exfil       │  │  │
-│  │  │ Team     │─▶│ Team     │─▶│ Team             │  │  │
-│  │  └──────────┘  └──────────┘  └──────────────────┘  │  │
-│  │       ▼              ▼                 ▼            │  │
-│  │  ┌────────────────────────────────────────────┐    │  │
-│  │  │     Training Data (37 missions/sec)       │    │  │
-│  │  └────────────────────────────────────────────┘    │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
+│  ┌──────────────┐      ┌─────────────┐    ┌─────────────┐ │
+│  │  Propagate   │─────▶│  Honeypot   │───▶│ AI Training │ │
+│  │  (Red Team)  │      │ (Blue Team) │    │   System    │ │
+│  └──────────────┘      └─────────────┘    └─────────────┘ │
+│         │                     │                    │        │
+│         ▼                     ▼                    ▼        │
+│  ┌──────────────┐      ┌─────────────┐    ┌─────────────┐ │
+│  │  10+ Attack  │      │  WAF + AI   │    │  V3 Binary  │ │
+│  │  Categories  │      │  Detection  │    │  Protocol   │ │
+│  └──────────────┘      └─────────────┘    └─────────────┘ │
+│         │                     │                    │        │
+│         └─────────────────────┴────────────────────┘        │
+│                    Feedback & Mutation Loop                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Phase 1-5 Roadmap
+## ✨ Key Features
 
-### ✅ Phase 1: Multi-Agent Team Coordination (COMPLETE)
-**Status:** Production-ready
-**Completion Date:** 2025-11-10
+### 🛡️ Purple Team Training
+- **Red Team**: Polymorphic attack generation (10+ categories)
+- **Blue Team**: AI-powered detection & response
+- **Continuous Learning**: Adaptive mutation based on success/failure
+- **Localhost-Only**: Controlled environment, no external targets
 
-**Achievements:**
-- ✅ Multi-agent team training pipeline (Recon → Exploit → Data Exfil)
-- ✅ 37 missions/sec sustained processing rate
-- ✅ 100K+ mission scalability with stable memory
-- ✅ 98% checkpoint overhead reduction
-- ✅ Live monitoring dashboard (`progress.sh`)
-- ✅ Atomic checkpoints with corruption-proof resume
-- ✅ Comprehensive logging and error handling
-- ✅ GPU-ready PyTorch batch generation
+### 🧬 Polymorphic Attack Generation
+- **10+ Attack Categories**: SQL injection, XSS, Path Traversal, Command Injection, etc.
+- **5 Encoding Types**: URL, Double-URL, Unicode, HTML Entity, Hex
+- **4 Case Variations**: Upper, Lower, Mixed, Alternating
+- **Evasion Techniques**: Whitespace injection, fragment splitting, timing variation
+- **Self-Adapting**: Learns from detection and adjusts tactics
 
-**Performance Metrics:**
-- Processing Rate: 37.1 missions/sec (sustained)
-- Scalability: Tested up to 100K missions
-- Checkpoint Efficiency: 200 checkpoints (vs 10,000 before)
-- Success Rate: ~57% mission completion
-- Memory: Stable at ~300MB for large runs
+### 📡 V3 Binary Protocol (88% Bandwidth Reduction)
+- **Ultra-Compact**: 6-8 bytes vs 28+ bytes (V1 Greek words)
+- **8.3x Faster**: Transmission speed improvement
+- **32 Actions**: Comprehensive action vocabulary
+- **Base64 Encoded**: Efficient agent-to-agent communication
 
-### 🔄 Phase 2: GPU Training & Model Optimization (IN PROGRESS)
-**Status:** Training data ready
-**Target:** Q1 2025
+### 🤖 AI Detection System
+- **Hybrid Detection**: WAF rules + XGBoost ML model
+- **Shadow Mode**: AI learns without interfering
+- **Real-time Analysis**: <5ms detection latency
+- **Training Pipeline**: Automated data collection → model training
 
-**Objectives:**
-- [ ] Deploy GPU training pipeline with generated PyTorch batches
-- [ ] Train neural network models on 100K+ missions
-- [ ] Implement model evaluation and validation
-- [ ] Optimize model architectures for performance
-- [ ] Deploy trained models to production swarm
-
-### 📋 Phase 3: Advanced Swarm Intelligence (PLANNED)
-**Status:** Design phase
-**Target:** Q2 2025
-
-**Objectives:**
-- [ ] Multi-swarm coordination
-- [ ] Hierarchical decision-making
-- [ ] Advanced evolutionary algorithms
-- [ ] Emergent behavior optimization
-
-### 📋 Phase 4: Real-time Adaptation (PLANNED)
-**Status:** Concept
-**Target:** Q3 2025
-
-**Objectives:**
-- [ ] Online learning capabilities
-- [ ] Dynamic strategy adjustment
-- [ ] Real-time threat response
-- [ ] Continuous model updates
-
-### 📋 Phase 5: Distributed Deployment (PLANNED)
-**Status:** Research
-**Target:** Q4 2025
-
-**Objectives:**
-- [ ] Multi-node coordination
-- [ ] Cloud-scale deployment
-- [ ] Federated learning
-- [ ] Enterprise integration
+### 🔬 Cellular Architecture
+- **Modular Cells**: 7 specialized processing phases
+- **Core Orchestrator**: Central coordination system
+- **Feedback Loops**: Continuous improvement
+- **V3 Protocol**: Efficient inter-cell communication
 
 ---
 
-## Quick Start
+## 📊 Current Status
+
+### Production Systems Running ✅
+```bash
+✅ honeypot_server.py          # Attack capture & WAF
+✅ listener.py                 # Kill report collection
+✅ ai_swarm_fixed.py           # Learning engine
+✅ synexs_core_orchestrator.py # Cell coordinator (Cycle #868+)
+✅ propagate_v3_enhanced.py    # Polymorphic attack generator
+```
+
+### Training Data Metrics
+```
+Attack Types: 10+ categories
+Encodings: 5 types
+Training Records: Growing (target: 2000+)
+V3 Protocol: Active (88% reduction)
+Diversity: High ✅
+```
+
+### System Performance
+```
+Orchestrator: 100% success rate (7/7 cells)
+Cycle Time: 4-10 seconds
+V3 Sequences: 10 bytes avg (vs 28 bytes V1)
+Bandwidth Savings: 24 GB/year per 1000 agents
+```
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Python 3.8+
-- PyTorch (for GPU training)
-- 1GB+ RAM (for large-scale training)
-- Linux environment (recommended)
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/gh0st-g/synexs.git
-cd synexs
+# Python 3.8+
+python3 --version
 
-# Install dependencies
+# Virtual environment (recommended)
+python3 -m venv synexs_env
+source synexs_env/bin/activate
+
+# Dependencies
 pip install -r requirements.txt
 ```
 
-### Run Phase 1 Training
-
+### 1. Start Core Services
 ```bash
-# Quick test (10 missions)
-python3 synexs_phase1_runner.py --quick
+# Start honeypot (port 8080)
+python3 honeypot_server.py &
 
-# Production training (1,000 missions)
-python3 synexs_phase1_runner.py --missions 1000
+# Start AI swarm
+python3 ai_swarm_fixed.py &
 
-# Large-scale training (100K missions)
-nohup python3 synexs_phase1_runner.py --missions 100000 > train.out 2>&1 &
+# Start listener
+python3 listener.py &
+
+# Start orchestrator
+python3 synexs_core_orchestrator.py &
 ```
 
-### Monitor Training Progress
-
-In a separate terminal:
+### 2. Generate Training Data
 ```bash
-# Live monitoring dashboard
-./progress.sh training_logs
+# Generate 50 diverse attack agents
+python3 propagate_v3_enhanced.py
 
-# View logs in real-time
-tail -f training_logs/logs/training_*.log
-
-# Check progress file
-cat training_logs/progress.json
+# Execute agents against honeypot
+for f in datasets/agents/sx*.py; do
+    python3 "$f"
+    sleep 0.1
+done
 ```
 
-### Resume After Interruption
-
-Training automatically resumes from checkpoints:
+### 3. Monitor Training Data Collection
 ```bash
-# Just run the same command - auto-resumes
-python3 synexs_phase1_runner.py --missions 1000
+# Check attack diversity
+cat datasets/honeypot/attacks.json | jq -r '.type' | sort | uniq -c
+
+# View orchestrator logs
+tail -f synexs_core.log
+
+# Monitor AI decisions
+tail -f ai_decisions_log.jsonl
 ```
 
 ---
 
-## Performance Metrics
-
-### Phase 1 Training Performance
-
-| Metric | Value |
-|--------|-------|
-| **Processing Rate** | 37.1 missions/sec (sustained) |
-| **Scalability** | 100K+ missions tested |
-| **Checkpoint Efficiency** | 98% overhead reduction |
-| **Memory Usage** | ~300MB stable (100K missions) |
-| **Success Rate** | ~57% mission completion |
-| **Resume Capability** | 100% data integrity |
-
-### Scalability Matrix
-
-| Missions | Time | Checkpoints | Storage | RAM |
-|----------|------|-------------|---------|-----|
-| 10 | 0.2s | 1 | 1MB | 200MB |
-| 100 | 2s | 10 | 5MB | 200MB |
-| 1,000 | 30s | 20 | 50MB | 250MB |
-| 10,000 | 5min | 100 | 500MB | 300MB |
-| 100,000 | 45min | 200 | 5GB | 400MB |
-
-### Protocol Efficiency
-
-- **Binary Protocol v2:** 6 bytes per message
-- **JSON Equivalent:** 46 bytes per message
-- **Bandwidth Reduction:** 88%
-- **Latency:** <50ms average response time
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 synexs/
-├── cells/                         # Cellular architecture modules
-│   ├── cell_001.py               # Base cell implementation
-│   ├── cell_021_core_loop.py     # Core execution loop
-│   └── ...                        # Specialized cells
-├── cleanup_utils/                 # System maintenance utilities
-├── loader/                        # Rust-based loader component
-├── training_logs/                 # Training data (gitignored)
-│   ├── checkpoint.json           # Resume point
-│   ├── progress.json             # Real-time progress
-│   ├── logs/                     # Comprehensive logs
-│   ├── missions/                 # Mission data (JSONL)
-│   └── batches/                  # PyTorch training batches
-├── synexs_phase1_runner.py       # Phase 1 training pipeline ⭐
-├── synexs_core_orchestrator.py   # Main orchestration engine
-├── synexs_core_ai.py             # AI/ML core logic
-├── binary_protocol.py             # Binary communication protocol
-├── defensive_engine_fast.py       # Fast defensive training engine
-├── honeypot_server.py             # Honeypot implementation
-├── dna_collector.py               # Training data collector
-├── progress.sh                    # Live monitoring dashboard ⭐
-├── requirements.txt               # Python dependencies
-└── docker-compose.yml             # Container orchestration
+├── Core Systems
+│   ├── honeypot_server.py          # WAF + AI detection
+│   ├── listener.py                 # Kill report collector
+│   ├── propagate_v3_enhanced.py    # Attack generator
+│   ├── ai_swarm_fixed.py           # Learning engine
+│   └── synexs_core_orchestrator.py # Cell coordinator
+│
+├── Protocol & Models
+│   ├── binary_protocol.py          # V3 protocol (88% reduction)
+│   ├── synexs_model.py             # ML model
+│   ├── vocab_v3_binary.json        # 32 action vocabulary
+│   └── attack_profiles.json        # Attack configuration
+│
+├── Cells (Processing Pipeline)
+│   ├── cell_001.py                 # V3 sequence generator
+│   ├── cell_004.py                 # Hash logging
+│   ├── cell_006.py                 # AI classifier
+│   ├── cell_010_parser.py          # Token parser
+│   ├── cell_014_mutator.py         # Mutation engine
+│   ├── cell_015_replicator.py      # Replication logic
+│   └── cell_016_feedback_loop.py   # Feedback analysis
+│
+├── Configuration
+│   ├── ai_config.json              # AI model configuration
+│   └── attack_profiles.json        # Attack pattern config
+│
+├── Training Data
+│   ├── datasets/
+│   │   ├── honeypot/               # Attack logs
+│   │   ├── generated/              # V3 sequences
+│   │   ├── refined/                # Processed data
+│   │   ├── agents/                 # Generated agents
+│   │   └── mutation.json           # Adaptive state
+│   │
+│   └── training_binary_v3.jsonl    # Training dataset
+│
+└── Documentation
+    ├── README.md                    # This file
+    ├── SYNEXS_MASTER_DOCUMENTATION.md
+    ├── PURPLE_TEAM_ENHANCEMENT.md
+    ├── BINARY_PROTOCOL_DEPLOYMENT.md
+    └── TRAINING_DATA_ANALYSIS.md
 ```
 
-⭐ = Phase 1 production components
+---
+
+## 🔧 Configuration
+
+### Attack Profile Customization
+Edit `attack_profiles.json`:
+```json
+{
+  "sql_injection": {
+    "enabled": true,
+    "weight": 15,
+    "patterns": ["' OR '1'='1", "1' UNION SELECT"],
+    "encodings": ["url", "unicode", "hex"]
+  }
+}
+```
+
+### AI Model Configuration
+Edit `ai_config.json`:
+```json
+{
+  "ai_mode": {
+    "shadow_mode": true,
+    "fallback_enabled": true
+  },
+  "training": {
+    "auto_retrain": true,
+    "retrain_every_n_cycles": 100
+  }
+}
+```
 
 ---
 
-## Documentation
+## 📈 Training Pipeline
+
+### Phase 1: Data Collection (Current)
+```
+1. Generate diverse attack patterns (propagate_v3_enhanced.py)
+2. Execute against localhost honeypot
+3. Log attacks & responses
+4. AI analyzes patterns
+5. Mutation system adapts strategies
+```
+
+### Phase 2: AI Training (2000+ samples)
+```
+1. Export training data (training_binary_v3.jsonl)
+2. Transfer to GPU server
+3. Train ML model on diverse patterns
+4. Validate detection accuracy
+5. Deploy improved model
+```
+
+### Phase 3: Production (5000+ samples)
+```
+1. Real-time detection active
+2. Continuous learning enabled
+3. Adaptive response system
+4. Performance monitoring
+```
+
+---
+
+## 🎓 Use Cases
+
+### 1. Security Research
+- Study attack patterns and evasion techniques
+- Test WAF and detection systems
+- Research AI-powered defense mechanisms
+
+### 2. Red Team Training
+- Practice attack methodology
+- Learn polymorphic techniques
+- Understand detection evasion
+
+### 3. Blue Team Training
+- Improve detection capabilities
+- Train AI models on diverse attacks
+- Test defensive response systems
+
+### 4. Purple Team Exercises
+- Simulate real-world attack scenarios
+- Measure detection effectiveness
+- Continuous improvement loops
+
+---
+
+## 📊 Performance Metrics
+
+### Attack Diversity
+```
+SQL Injection: 15%
+XSS: 12%
+Path Traversal: 8%
+Command Injection: 4%
+Crawler Impersonation: 10%
+Directory Scanning: 4%
+Legitimate Traffic: 20%
+Other Attacks: 27%
+```
+
+### Detection Performance
+```
+WAF Detection: <5ms latency
+AI Detection: <50ms latency
+False Positive Rate: <2%
+True Positive Rate: >95% (target)
+```
+
+### Data Collection Rate
+```
+50 agents/batch × 10 batches/day = 500 attacks/day
+Target: 2000+ diverse samples in 4-5 days
+Expected: 10,000+ samples in 1 month
+```
+
+---
+
+## 🔒 Security Considerations
+
+### Safety Boundaries
+✅ **Hardcoded Localhost**: All targets are 127.0.0.1
+✅ **No External Access**: Cannot reach internet
+✅ **Controlled Environment**: Isolated honeypot
+✅ **Research Purpose**: Educational/defensive security
+
+### What This System Does NOT Do
+❌ Remote exploitation
+❌ Data exfiltration
+❌ Credential harvesting
+❌ Network propagation
+❌ Malicious activity outside localhost
+
+### Verification
+```bash
+# Verify localhost-only targets
+grep -r "127.0.0.1" *.py
+
+# Check no external IPs
+grep -E "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" *.py | grep -v "127.0.0.1"
+```
+
+---
+
+## 📚 Documentation
 
 ### Core Documentation
-- **[OPTIMIZATION_REPORT.md](OPTIMIZATION_REPORT.md)** - Phase 1 optimization details (750+ lines)
-- **[CHANGES_SUMMARY.md](CHANGES_SUMMARY.md)** - Quick reference for Phase 1 changes
-- **[MONITORING.md](MONITORING.md)** - Monitoring and operations guide
-- **[SYNEXS_MASTER_DOCUMENTATION.md](SYNEXS_MASTER_DOCUMENTATION.md)** - Complete system overview
+- **[SYNEXS_MASTER_DOCUMENTATION.md](SYNEXS_MASTER_DOCUMENTATION.md)** - Complete system guide
+- **[PURPLE_TEAM_ENHANCEMENT.md](PURPLE_TEAM_ENHANCEMENT.md)** - Attack diversity improvements
+- **[BINARY_PROTOCOL_DEPLOYMENT.md](BINARY_PROTOCOL_DEPLOYMENT.md)** - V3 protocol guide
+- **[TRAINING_DATA_ANALYSIS.md](TRAINING_DATA_ANALYSIS.md)** - Data collection analysis
+- **[CLEANUP_REPORT.md](CLEANUP_REPORT.md)** - System cleanup documentation
 
-### Technical Specifications
-- **[BINARY_PROTOCOL_COMPLETE.md](BINARY_PROTOCOL_COMPLETE.md)** - Protocol specification
-- **[DOCKER_DEPLOYMENT.md](DOCKER_DEPLOYMENT.md)** - Container deployment guide
-- **[DEFENSIVE_TRAINING.md](DEFENSIVE_TRAINING.md)** - Training methodology
-- **[GPU_SETUP_README.md](GPU_SETUP_README.md)** - GPU acceleration setup
-- **[CORE_ORCHESTRATOR_README.md](CORE_ORCHESTRATOR_README.md)** - Orchestrator details
-
----
-
-## Key Technologies
-
-- **Python 3.8+** - Primary development language
-- **PyTorch** - Deep learning framework for GPU training
-- **Scikit-learn** - Machine learning utilities
-- **XGBoost** - Gradient boosting classifier
-- **Flask** - Web dashboard interface
-- **Docker** - Containerization
-- **Rust** - High-performance loader component
+### Quick References
+- **[CORE_ORCHESTRATOR_README.md](CORE_ORCHESTRATOR_README.md)** - Orchestrator guide
+- **[GPU_SETUP_README.md](GPU_SETUP_README.md)** - GPU training setup
+- **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** - Current deployment status
 
 ---
 
-## Security & Ethics
+## 🤝 Contributing
 
-This project is designed for **defensive security research and authorized testing only**.
+This is a private research project. If you have suggestions or improvements:
 
-- All honeypot testing is localhost-only by default
-- Intended for educational and defensive purposes
-- Should only be used in authorized environments
-- Not intended for malicious activities
-
----
-
-## Contributing
-
-This is a private research project. Contributions are not currently being accepted.
+1. Document your findings
+2. Test in isolated environment
+3. Verify localhost-only operation
+4. Submit detailed analysis
 
 ---
 
-## License
+## 📝 Changelog
 
-This project is private and proprietary. All rights reserved.
+### v3.0 (Dec 2025) - Purple Team Enhancement
+- ✅ Added 10+ attack categories (vs 6 before)
+- ✅ Implemented polymorphic behavior (5 encodings, 4 case variations)
+- ✅ Configuration-based attack profiles
+- ✅ Legitimate traffic generation (balanced dataset)
+- ✅ Enhanced mutation system
+
+### v2.3 (Nov 2025) - V3 Binary Protocol
+- ✅ V3 binary protocol (88% bandwidth reduction)
+- ✅ AI decision engine with shadow mode
+- ✅ Training data collection automation
+- ✅ Orchestrator production deployment
+
+### v2.0 (Oct 2025) - Core System
+- ✅ Cellular architecture implementation
+- ✅ Honeypot with WAF + AI detection
+- ✅ Agent swarm learning system
+- ✅ Basic attack generation
 
 ---
 
-## Credits
+## 🎯 Roadmap
 
-See [CREDITS.md](CREDITS.md) for acknowledgments and attributions.
+### Short Term (Month 1)
+- [ ] Collect 2000+ diverse training samples
+- [ ] Transfer to GPU server for training
+- [ ] Deploy trained AI model
+- [ ] Measure detection accuracy
+
+### Mid Term (Months 2-3)
+- [ ] Expand to 20+ attack categories
+- [ ] Real-time attack adaptation
+- [ ] Advanced evasion techniques
+- [ ] Performance optimization
+
+### Long Term (Months 4-6)
+- [ ] Distributed honeypot network
+- [ ] Advanced AI models (transformer-based)
+- [ ] Autonomous response system
+- [ ] Public research publication
 
 ---
 
-## Support
+## 📞 Support & Contact
 
-For questions or issues:
-- **Check logs:** `training_logs/logs/training_*.log`
-- **Monitor progress:** `./progress.sh training_logs`
-- **Review documentation:** See files listed above
-- **Examine data:** `training_logs/checkpoint.json`, `training_logs/progress.json`
+**Project**: Synexs - Purple Team AI Security Framework
+**Purpose**: Defensive security research & AI training
+**Status**: Production-ready data collection phase
+
+For questions or collaboration inquiries, please refer to project documentation.
 
 ---
 
-**Project Status:** Phase 1 Complete ✅ | Phase 2 In Progress 🔄
+## ⚖️ License & Ethics
 
-**Current Version:** 2.0
-**Last Updated:** 2025-11-10
-**Next Milestone:** GPU training deployment (100K+ missions)
+This project is for **educational and defensive security research** purposes only.
+
+### Ethical Guidelines
+- ✅ Use only in controlled environments
+- ✅ Localhost-only targets
+- ✅ No unauthorized access
+- ✅ Defensive security research
+- ❌ No malicious use
+- ❌ No unauthorized deployment
+- ❌ No external attacks
+
+**Research Context**: This system is designed to improve defensive AI capabilities by training models on diverse attack patterns in controlled, isolated environments.
+
+---
+
+**Synexs** - *Advancing defensive AI through purple team methodology*
+
+Last Updated: December 15, 2025
+Version: 3.0

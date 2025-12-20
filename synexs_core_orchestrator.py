@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Synexs Core Orchestrator v2.2
+Synexs Core Orchestrator v2.5
 Coordinates all cells, integrates AI decisions, manages pipeline
 """
 
@@ -42,7 +42,7 @@ CELL_PHASES = {
     "processing": ["cell_004.py", "cell_010_parser.py"],
     "classification": ["cell_006.py"],
     "evolution": ["cell_014_mutator.py", "cell_015_replicator.py"],
-    "feedback": ["cell_016_feedback_loop.py"],
+    "feedback": ["cell_016_feedback_loop.py", "cell_016_model_trainer.py"],
 }
 
 # Setup logging with rotation
@@ -57,7 +57,6 @@ handler.setFormatter(logging.Formatter(
 ))
 logging.basicConfig(handlers=[handler], level=logging.INFO)
 
-# ==================== Cell Execution ====================
 class CellExecutor:
     """Manages cell execution"""
 
@@ -175,26 +174,7 @@ class CellExecutor:
         try:
             # Load sequences from refined directory
             refined_dir = WORK_DIR / "datasets" / "refined"
-            sequences = []
-
-            if refined_dir.exists():
-                for fname in refined_dir.glob("*.json"):
-                    try:
-                        with open(fname, 'r') as f:
-                            data = json.load(f)
-                        # Handle different formats
-                        seq_data = data.get("sequences", []) if isinstance(data, dict) else data if isinstance(data, list) else []
-                        for entry in seq_data:
-                            if isinstance(entry, dict):
-                                seq = entry.get("sequence") or entry.get("refined") or ""
-                            elif isinstance(entry, str):
-                                seq = entry
-                            else:
-                                continue
-                            if seq:
-                                sequences.append(seq)
-                    except Exception as e:
-                        logging.error(f"Error loading {fname}: {e}")
+            sequences = self.ai_engine.load_sequences_from_directory(refined_dir)
 
             if sequences:
                 logging.info(f"🤖 Generating AI decisions for {len(sequences)} sequences...")
@@ -202,12 +182,8 @@ class CellExecutor:
                 self.ai_engine.save_decisions_for_cells(decisions)
 
                 # Log AI metrics
-                sources = {}
-                for d in decisions:
-                    source = d.get("source", "unknown")
-                    sources[source] = sources.get(source, 0) + 1
-
-                avg_confidence = sum(d.get("confidence", 0) for d in decisions) / len(decisions) if decisions else 0
+                sources = self.ai_engine.get_decision_sources(decisions)
+                avg_confidence = self.ai_engine.get_average_confidence(decisions)
                 logging.info(f"📊 AI Metrics: {sources}, Avg Confidence: {avg_confidence:.3f}")
             else:
                 logging.info("⏭️  No sequences found for AI decision generation")
@@ -218,7 +194,7 @@ class CellExecutor:
     def post_feedback_hook(self):
         """
         Post-execution hook: Collect training data after feedback phase
-        This runs AFTER cell_016 feedback loop completes
+        This runs AFTER cell_016 feedback loop and model training
         """
         if not self.ai_engine:
             return
@@ -226,29 +202,11 @@ class CellExecutor:
         try:
             # Load feedback results to determine outcomes
             decisions_file = WORK_DIR / "datasets" / "decisions" / "decisions.json"
+            decisions = self.ai_engine.load_decisions_from_file(decisions_file)
 
-            if decisions_file.exists():
-                with open(decisions_file, 'r') as f:
-                    data = json.load(f)
-
-                if isinstance(data, dict):
-                    decisions = data.get("decisions", [])
-                elif isinstance(data, list):
-                    decisions = data
-                else:
-                    decisions = []
-
-                # Collect training samples from decisions
-                for decision in decisions[:10]:  # Limit to avoid overwhelming
-                    if isinstance(decision, dict):
-                        seq = decision.get("sequence", "")
-                        action = decision.get("action", decision.get("decision", ""))
-                        if seq and action:
-                            # Use action as both prediction and outcome for now
-                            # In production, outcome would come from actual execution results
-                            self.ai_engine.collect_training_sample(seq, action, action)
-
-                logging.info(f"📊 Collected {min(len(decisions), 10)} training samples")
+            # Collect training samples from decisions
+            self.ai_engine.collect_training_samples(decisions)
+            logging.info(f"📊 Collected training samples")
 
         except Exception as e:
             logging.error(f"❌ Error in post-feedback hook: {e}", exc_info=True)
@@ -303,7 +261,6 @@ class CellExecutor:
         """Get execution statistics"""
         return self.stats.copy()
 
-# ==================== AI Decision Engine ====================
 class AIDecisionEngine:
     """
     AI-powered decision engine with shadow mode support
@@ -434,170 +391,15 @@ class AIDecisionEngine:
         except Exception as e:
             logging.error(f"Error saving AI decisions: {e}")
 
-    def collect_training_sample(self, sequence: str, predicted_action: str, actual_outcome: str):
-        """Collect training sample from execution results"""
-        sample = {
-            "sequence": sequence,
-            "predicted_action": predicted_action,
-            "actual_outcome": actual_outcome,
-            "timestamp": datetime.now().isoformat()
-        }
-
-        self.training_buffer.append(sample)
-
-        # Save buffer periodically
-        if len(self.training_buffer) >= 100:
-            self._flush_training_buffer()
-
-    def _flush_training_buffer(self):
-        """Save training buffer to disk"""
-        if not self.training_buffer:
-            return
-
-        training_dir = WORK_DIR / "datasets" / "core_training"
-        training_dir.mkdir(parents=True, exist_ok=True)
-
-        timestamp = int(time.time())
-        output_file = training_dir / f"training_batch_{timestamp}.json"
-
-        try:
-            with open(output_file, 'w') as f:
-                json.dump(self.training_buffer, f, indent=2)
-            logging.info(f"💾 Saved {len(self.training_buffer)} training samples to {output_file}")
-            self.training_buffer = []
-        except Exception as e:
-            logging.error(f"Error saving training buffer: {e}")
-
-    def should_retrain(self, cycle_num: int) -> bool:
-        """Check if retraining should be triggered"""
-        if not self.config["training"]["auto_retrain"]:
-            return False
-
-        retrain_interval = self.config["training"].get("retrain_every_n_cycles", 100)
-        return cycle_num > 0 and cycle_num % retrain_interval == 0
-
-    def trigger_retraining(self):
-        """Trigger model retraining"""
-        logging.info("🔄 Triggering model retraining...")
-
-        try:
-            # Flush any remaining training samples
-            self._flush_training_buffer()
-
-            # Execute training cell
-            trainer_path = CELLS_DIR / "cell_016_model_trainer.py"
-            if trainer_path.exists():
-                result = subprocess.run(
-                    ["python3", str(trainer_path)],
-                    cwd=str(WORK_DIR),
-                    capture_output=True,
-                    text=True,
-                    timeout=600
-                )
-
-                if result.returncode == 0:
-                    logging.info("✅ Model retraining completed successfully")
-                    # Reload model
-                    self.model, self.vocab = load_model()
-                    logging.info("✅ Model reloaded with new weights")
-                    return True
-                else:
-                    logging.error(f"❌ Model retraining failed: {result.stderr[:200]}")
-                    return False
-            else:
-                logging.warning(f"⚠️  Trainer not found: {trainer_path}")
-                return False
-
-        except Exception as e:
-            logging.error(f"❌ Error during retraining: {e}", exc_info=True)
-            return False
-
-# ==================== Health Monitoring ====================
-def check_system_health() -> Dict:
-    """Check system health metrics"""
-    try:
-        return {
-            "cpu_percent": psutil.cpu_percent(interval=1),
-            "memory_percent": psutil.virtual_memory().percent,
-            "disk_percent": psutil.disk_usage('/').percent,
-            "timestamp": datetime.now().isoformat()
-        }
-    except Exception as e:
-        logging.error(f"❌ Error checking system health: {e}", exc_info=True)
-        return {"error": str(e)}
-
-# ==================== Main Loop ====================
-def main():
-    """Main orchestrator loop"""
-    print("=" * 60)
-    print("🧠 Synexs Core Orchestrator v2.2")
-    print("=" * 60)
-    print(f"📁 Work directory: {WORK_DIR}")
-    print(f"🔬 Cells directory: {CELLS_DIR}")
-    print(f"📝 Log file: {LOG_FILE}")
-    print(f"⏱️  Cycle interval: {CYCLE_INTERVAL}s")
-    print(f"🤖 AI model: {'✅ Available' if AI_MODEL_AVAILABLE else '❌ Not available'}")
-    print("=" * 60)
-
-    # Verify cells directory exists
-    if not CELLS_DIR.exists():
-        logging.error(f"❌ Cells directory not found: {CELLS_DIR}")
-        sys.exit(1)
-
-    # Count available cells
-    available_cells = list(CELLS_DIR.glob("*.py"))
-    print(f"📦 Found {len(available_cells)} cell files")
-
-    # Initialize executor
-    executor = CellExecutor()
-    logging.info(f"🚀 Orchestrator started - PID: {os.getpid()}")
-
-    cycle_count = 0
-
-    def handle_signal(signum, frame):
-        logging.info("⛔ Shutdown requested")
-        print("\n⛔ Shutting down...")
-        sys.exit(0)
-
-    signal.signal(signal.SIGINT, handle_signal)
-    signal.signal(signal.SIGTERM, handle_signal)
-
-    try:
-        while True:
-            cycle_count += 1
-
-            # Run orchestration cycle
-            try:
-                executor.run_cycle(cycle_count)
-            except Exception as e:
-                logging.error(f"❌ Error running orchestration cycle: {e}", exc_info=True)
-
-            # Health check every 10 cycles
-            if cycle_count % 10 == 0:
-                try:
-                    health = check_system_health()
-                    if "cpu_percent" in health:
-                        logging.info(f"💊 Health: CPU={health['cpu_percent']:.1f}% MEM={health['memory_percent']:.1f}% DISK={health['disk_percent']:.1f}%")
-                except Exception as e:
-                    logging.error(f"❌ Error checking system health: {e}", exc_info=True)
-
-            # Sleep until next cycle
-            print(f"\n⏸️  Sleeping {CYCLE_INTERVAL}s until next cycle...")
-            time.sleep(CYCLE_INTERVAL)
-
-    except KeyboardInterrupt:
-        logging.info("⛔ Shutdown requested")
-        print("\n⛔ Shutting down...")
-    except Exception as e:
-        logging.error(f"❌ Fatal error: {e}", exc_info=True)
-        sys.exit(1)
-    finally:
-        stats = executor.get_stats()
-        logging.info(f"📊 Final stats: {stats}")
-        print(f"\n📊 Total executions: {stats['total_executions']}")
-        print(f"✅ Successful: {stats['successful']}")
-        print(f"❌ Failed: {stats['failed']}")
-        print(f"⏭️  Skipped: {stats['skipped']}")
-
-if __name__ == "__main__":
-    main()
+    def collect_training_samples(self, decisions: List[Dict]):
+        """Collect training samples from execution results"""
+        for decision in decisions[:10]:  # Limit to avoid overwhelming
+            if isinstance(decision, dict):
+                seq = decision.get("sequence", "")
+                action = decision.get("action", decision.get("decision", ""))
+                if seq and action:
+                    # Use action as both prediction and outcome for now
+                    sample = {
+                        "sequence": seq,
+                        "action": action,
+                        "timestamp": datetime.now().i

@@ -118,7 +118,7 @@ def load_model(model_path: str = MODEL_PATH, vocab: Optional[Dict] = None) -> tu
     model = SynexsCoreModel(vocab_size, output_dim=output_dim)
 
     try:
-        state_dict = torch.load(model_path, map_location=torch.device("cpu"), weights_only=False)
+        state_dict = torch.load(model_path, map_location=torch.device("cpu"))
         model.load_state_dict(state_dict)
         model.eval()
         logging.info(f"Loaded V3 model: vocab_size={vocab_size}, output_dim={output_dim}")

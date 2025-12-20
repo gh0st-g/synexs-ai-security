@@ -19,6 +19,7 @@ from watchdog.events import FileSystemEventHandler
 import xgboost as xgb
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
+import logging
 
 # Configuration
 WORK_DIR = Path("/root/synexs")
@@ -39,7 +40,6 @@ _vectorizer = None
 _encoder = None
 _last_update = None
 
-
 class KillFileWatcher(FileSystemEventHandler):
     """Real-time watcher for real_world_kills.json"""
 
@@ -53,9 +53,8 @@ class KillFileWatcher(FileSystemEventHandler):
             now = time.time()
             if now - self.last_modified > 1.0:
                 self.last_modified = now
-                print(f"⚡ Kill file updated: {datetime.now().strftime('%H:%M:%S')}")
+                logging.info(f"⚡ Kill file updated: {datetime.now().strftime('%H:%M:%S')}")
                 self.callback()
-
 
 def load_attacks_fast() -> pd.DataFrame:
     """
@@ -68,7 +67,7 @@ def load_attacks_fast() -> pd.DataFrame:
 
     # Check if cache is fresh (< 5 seconds old)
     file_mtime = ATTACKS_FILE.stat().st_mtime
-    if _attack_cache is not None and _last_update and file_mtime <= _last_update:
+    if _attack_cache is not None and _last_update and file_mtime <= _last_update + 5:
         return _attack_cache
 
     try:
@@ -112,9 +111,8 @@ def load_attacks_fast() -> pd.DataFrame:
         return df
 
     except Exception as e:
-        print(f"⚠️ Attack load error: {e}")
+        logging.error(f"⚠️ Attack load error: {e}")
         return pd.DataFrame()
-
 
 def load_kills_fast() -> pd.DataFrame:
     """
@@ -153,9 +151,8 @@ def load_kills_fast() -> pd.DataFrame:
         return df
 
     except Exception as e:
-        print(f"⚠️ Kill load error: {e}")
+        logging.error(f"⚠️ Kill load error: {e}")
         return pd.DataFrame()
-
 
 def analyze_blocks_fast() -> Dict:
     """
@@ -214,8 +211,8 @@ def analyze_blocks_fast() -> Dict:
         }
 
     except Exception as e:
+        logging.error(f"⚠️ Analysis error: {e}")
         return {"error": str(e)}
-
 
 def build_xgboost_model() -> Optional[xgb.XGBClassifier]:
     """
@@ -228,7 +225,7 @@ def build_xgboost_model() -> Optional[xgb.XGBClassifier]:
         df = load_attacks_fast()
 
         if df.empty or len(df) < 10:
-            print("⚠️ Not enough data to train model (need 10+ samples)")
+            logging.warning("⚠️ Not enough data to train model (need 10+ samples)")
             return None
 
         # Feature engineering
@@ -271,13 +268,12 @@ def build_xgboost_model() -> Optional[xgb.XGBClassifier]:
         joblib.dump(_vectorizer, VECTORIZER_FILE)
         joblib.dump(_encoder, ENCODER_FILE)
 
-        print(f"✅ XGBoost model trained: {len(df)} samples")
+        logging.info(f"✅ XGBoost model trained: {len(df)} samples")
         return _model
 
     except Exception as e:
-        print(f"⚠️ Model training error: {e}")
+        logging.error(f"⚠️ Model training error: {e}")
         return None
-
 
 def load_xgboost_model() -> bool:
     """Load pre-trained XGBoost model"""
@@ -289,13 +285,12 @@ def load_xgboost_model() -> bool:
             _model.load_model(str(MODEL_FILE))
             _vectorizer = joblib.load(VECTORIZER_FILE)
             _encoder = joblib.load(ENCODER_FILE)
-            print("✅ XGBoost model loaded")
+            logging.info("✅ XGBoost model loaded")
             return True
         return False
     except Exception as e:
-        print(f"⚠️ Model load error: {e}")
+        logging.error(f"⚠️ Model load error: {e}")
         return False
-
 
 def predict_block(user_agent: str, path: str, ip: str) -> Dict:
     """
@@ -327,9 +322,8 @@ def predict_block(user_agent: str, path: str, ip: str) -> Dict:
         }
 
     except Exception as e:
-        print(f"⚠️ Prediction error: {e}")
+        logging.error(f"⚠️ Prediction error: {e}")
         return {"should_block": False, "confidence": 0.0, "method": "error"}
-
 
 def on_kill_file_change():
     """Callback when real_world_kills.json changes"""
@@ -348,24 +342,23 @@ def on_kill_file_change():
 
         # Real-time learning
         if latest.get('is_av_kill', False):
-            print(f"🧨 AV KILL: {agent_id} - {reason}")
+            logging.info(f"🧨 AV KILL: {agent_id} - {reason}")
             update_av_rules(latest)
 
         elif latest.get('is_network_block', False):
-            print(f"🚫 NETWORK BLOCK: {agent_id} - {reason}")
+            logging.info(f"🚫 NETWORK BLOCK: {agent_id} - {reason}")
             update_network_rules(latest)
 
         elif latest.get('is_success', False):
-            print(f"⚠️ AGENT SURVIVED: {agent_id} ({survived}s) - IMPROVE DEFENSE")
+            logging.info(f"⚠️ AGENT SURVIVED: {agent_id} ({survived}s) - IMPROVE DEFENSE")
             flag_weakness(latest)
 
         # Retrain model with new data
-        print("⚡ Retraining model with new kill data...")
+        logging.info("⚡ Retraining model with new kill data...")
         build_xgboost_model()
 
     except Exception as e:
-        print(f"⚠️ Kill processing error: {e}")
-
+        logging.error(f"⚠️ Kill processing error: {e}")
 
 def update_av_rules(kill_data: pd.Series):
     """Update AV detection rules based on kill"""
@@ -391,11 +384,10 @@ def update_av_rules(kill_data: pd.Series):
         with open(AV_RULES_FILE, 'w') as f:
             json.dump(rules, f, indent=2)
 
-        print(f"  ✅ Updated AV rules: {len(av_detected)} signatures")
+        logging.info(f"  ✅ Updated AV rules: {len(av_detected)} signatures")
 
     except Exception as e:
-        print(f"  ⚠️ AV rule update error: {e}")
-
+        logging.error(f"  ⚠️ AV rule update error: {e}")
 
 def update_network_rules(kill_data: pd.Series):
     """Update network blocking rules"""
@@ -417,120 +409,7 @@ def update_network_rules(kill_data: pd.Series):
         with open(NETWORK_RULES_FILE, 'w') as f:
             json.dump(rules, f, indent=2)
 
-        print(f"  ✅ Updated network rules")
+        logging.info(f"  ✅ Updated network rules")
 
     except Exception as e:
-        print(f"  ⚠️ Network rule update error: {e}")
-
-
-def flag_weakness(kill_data: pd.Series):
-    """Flag defensive weakness for manual review"""
-    try:
-        if WEAKNESS_FILE.exists():
-            with open(WEAKNESS_FILE, 'r') as f:
-                weaknesses = json.load(f)
-        else:
-            weaknesses = {"weaknesses": []}
-
-        weakness = {
-            "agent_id": kill_data.get('agent_id'),
-            "survived_seconds": kill_data.get('survived_seconds'),
-            "timestamp": datetime.now().isoformat(),
-            "severity": "high" if kill_data.get('survived_seconds', 0) > 120 else "medium",
-            "action": "improve_detection"
-        }
-        weaknesses["weaknesses"].append(weakness)
-
-        with open(WEAKNESS_FILE, 'w') as f:
-            json.dump(weaknesses, f, indent=2)
-
-        print(f"  🚨 Flagged weakness: agent survived {kill_data.get('survived_seconds')}s")
-
-    except Exception as e:
-        print(f"  ⚠️ Weakness flagging error: {e}")
-
-
-def start_realtime_watcher():
-    """Start real-time file watcher for kill logs"""
-    try:
-        event_handler = KillFileWatcher(callback=on_kill_file_change)
-        observer = Observer()
-        observer.schedule(event_handler, str(KILLS_FILE.parent), recursive=False)
-        observer.start()
-        print(f"👁️ Watching: {KILLS_FILE}")
-        return observer
-    except Exception as e:
-        print(f"⚠️ Watcher start error: {e}")
-        return None
-
-
-def benchmark():
-    """Benchmark speed improvements"""
-    print("\n" + "="*60)
-    print("⚡ DEFENSIVE ENGINE BENCHMARK")
-    print("="*60)
-
-    # Test 1: Load attacks
-    start = time.time()
-    df = load_attacks_fast()
-    elapsed = time.time() - start
-    print(f"✅ Load attacks: {len(df)} rows in {elapsed*1000:.1f}ms")
-
-    # Test 2: Analyze blocks
-    start = time.time()
-    analysis = analyze_blocks_fast()
-    elapsed = time.time() - start
-    print(f"✅ Analyze blocks: {elapsed*1000:.1f}ms")
-    print(f"   - Total attacks: {analysis.get('total_attacks', 0)}")
-    print(f"   - Block rate: {analysis.get('block_rate', 0):.1f}%")
-    print(f"   - Crawler blocks: {analysis.get('crawler_block_rate', 0):.1f}%")
-
-    # Test 3: Load kills
-    start = time.time()
-    df_kills = load_kills_fast()
-    elapsed = time.time() - start
-    print(f"✅ Load kills: {len(df_kills)} rows in {elapsed*1000:.1f}ms")
-
-    # Test 4: Train model
-    if not df.empty:
-        start = time.time()
-        model = build_xgboost_model()
-        elapsed = time.time() - start
-        if model:
-            print(f"✅ Train XGBoost: {elapsed*1000:.1f}ms")
-
-        # Test 5: Inference speed
-        if model:
-            start = time.time()
-            for _ in range(100):
-                predict_block("Mozilla/5.0", "/admin", "1.2.3.4")
-            elapsed = time.time() - start
-            print(f"✅ Inference: {elapsed*10:.2f}ms per 100 predictions ({elapsed*1000/100:.2f}ms each)")
-
-    print("="*60)
-
-
-if __name__ == "__main__":
-    print("🚀 SYNEXS DEFENSIVE ENGINE - FAST MODE\n")
-
-    # Run benchmark
-    benchmark()
-
-    # Start real-time watcher
-    print("\n⚡ Starting real-time watcher...")
-    observer = start_realtime_watcher()
-
-    if observer:
-        print("✅ Defensive engine running")
-        print("   - Watching for new kills")
-        print("   - Auto-retraining on updates")
-        print("   - XGBoost inference: <5ms")
-        print("\nPress Ctrl+C to stop\n")
-
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            observer.stop()
-            observer.join()
-            print("\n⛔ Stopped")
+        logging.error(f"  ⚠️ Network rules update failed: {

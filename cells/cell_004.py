@@ -1,42 +1,40 @@
 import os
 import json
 import hashlib
+from pathlib import Path
 
 # Directory paths
-REFINED_DIR = "datasets/refined"
-HASH_LOG_DIR = "datasets/hash_log"
-os.makedirs(HASH_LOG_DIR, exist_ok=True)
+REFINED_DIR = Path("datasets/refined")
+HASH_LOG_DIR = Path("datasets/hash_log")
+HASH_LOG_PATH = HASH_LOG_DIR / "hash_log.json"
+
+# Ensure directories exist
+HASH_LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 # File hashing function
-def hash_file(filepath):
-    with open(filepath, "rb") as f:
+def hash_file(filepath: Path) -> str:
+    with filepath.open("rb") as f:
         content = f.read()
     return hashlib.sha256(content).hexdigest()
 
 # Load existing hash log
 hash_log = {}
-log_path = os.path.join(HASH_LOG_DIR, "hash_log.json")
-if os.path.exists(log_path):
-    with open(log_path, "r") as f:
+if HASH_LOG_PATH.exists():
+    with HASH_LOG_PATH.open("r") as f:
         hash_log = json.load(f)
 
-# Ensure refined directory exists
-if not os.path.exists(REFINED_DIR):
-    print(f"⚠️ [cell_004] Refined directory not found: {REFINED_DIR}")
-else:
-    for fname in os.listdir(REFINED_DIR):
-        if fname.endswith(".json") and fname not in hash_log:
-            filepath = os.path.join(REFINED_DIR, fname)
-            try:
-                file_hash = hash_file(filepath)
-                hash_log[fname] = file_hash
-                print(f"✅ [cell_004] Logged hash for: {fname} — {file_hash[:8]}")
-            except Exception as e:
-                print(f"❌ [cell_004] Failed to hash {fname}: {e}")
+# Process files in the refined directory
+for fname in REFINED_DIR.glob("*.json"):
+    if fname.name not in hash_log:
+        try:
+            file_hash = hash_file(fname)
+            hash_log[fname.name] = file_hash
+            print(f"✅ Logged hash for: {fname.name} — {file_hash[:8]}")
+        except Exception as e:
+            print(f"❌ Failed to hash {fname.name}: {e}")
 
-    # Save updated hash log
-    with open(log_path, "w") as f:
-        json.dump(hash_log, f, indent=2)
+# Save updated hash log
+with HASH_LOG_PATH.open("w") as f:
+    json.dump(hash_log, f, indent=2)
 
-print("✅ [cell_004] Hash logging complete.")
-
+print("✅ Hash logging complete.")

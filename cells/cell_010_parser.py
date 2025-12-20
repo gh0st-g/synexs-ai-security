@@ -1,31 +1,29 @@
 import os
 import json
 import re
+from pathlib import Path
 
 print(">>> [cell_010] Symbolic Parser activated...\n")
 
-input_dir = "datasets/refined"
-output_dir = "datasets/parsed"
-os.makedirs(output_dir, exist_ok=True)
+INPUT_DIR = "datasets/refined"
+OUTPUT_DIR = "datasets/parsed"
+Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
 def parse_sequence(sequence):
+    tokens = sequence.split()
     return {
-        "tokens": sequence.split(),
-        "length": len(sequence.split()),
-        "keywords": [t for t in sequence.split() if t.isupper() or t.startswith("[")],
+        "tokens": tokens,
+        "length": len(tokens),
+        "keywords": [t for t in tokens if t.isupper() or t.startswith("[")],
         "directives": re.findall(r'\[(.*?)\]', sequence),
     }
 
-for fname in os.listdir(input_dir):
-    if not fname.endswith(".json"):
-        continue
-
+def process_file(fname):
     try:
-        with open(os.path.join(input_dir, fname), "r") as f:
+        with open(os.path.join(INPUT_DIR, fname), "r") as f:
             data = json.load(f)
 
         parsed = []
-
         for entry in data:
             if isinstance(entry, dict):
                 sequence = entry.get("sequence", "")
@@ -33,17 +31,16 @@ for fname in os.listdir(input_dir):
                 sequence = entry
             else:
                 continue
-
-            parsed.append({
-                "original": sequence,
-                "parsed": parse_sequence(sequence)
-            })
+            parsed.append({"original": sequence, "parsed": parse_sequence(sequence)})
 
         outname = f"parsed_{fname}"
-        with open(os.path.join(output_dir, outname), "w") as f:
+        with open(os.path.join(OUTPUT_DIR, outname), "w") as f:
             json.dump(parsed, f, indent=2)
 
         print(f"[cell_010] Parsed {len(parsed)} entries from {fname} -> {outname}")
-
     except Exception as e:
         print(f"[cell_010] Error parsing {fname}: {e}")
+
+for fname in os.listdir(INPUT_DIR):
+    if fname.endswith(".json"):
+        process_file(fname)

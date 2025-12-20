@@ -11,6 +11,8 @@ DECISIONS_PATH = "datasets/decisions/decisions.json"
 def load_sequences_from_folder(folder: str) -> List[Dict]:
     sequences = []
     folder_path = Path(folder)
+    if not folder_path.exists():
+        os.makedirs(folder_path, exist_ok=True)
     for file_path in folder_path.glob("*.json"):
         try:
             with file_path.open("r") as f:

@@ -1,0 +1,288 @@
+{
+  "version": "1.0",
+  "description": "Attack pattern profiles for defensive security training",
+  "target": "localhost_honeypot_only",
+  
+  "attack_categories": {
+    "sql_injection": {
+      "enabled": true,
+      "weight": 15,
+      "patterns": [
+        "' OR '1'='1",
+        "1' UNION SELECT NULL--",
+        "'; DROP TABLE users--",
+        "' OR 1=1--",
+        "admin' --",
+        "' OR 'a'='a",
+        "1' AND '1'='1",
+        "'; EXEC sp_MSForEachTable 'DROP TABLE ?'--"
+      ],
+      "encodings": ["none", "url", "double_url", "unicode"],
+      "case_variations": true
+    },
+    
+    "xss_injection": {
+      "enabled": true,
+      "weight": 15,
+      "patterns": [
+        "<script>alert(1)</script>",
+        "<img src=x onerror=alert(1)>",
+        "<svg onload=alert(1)>",
+        "javascript:alert(1)",
+        "<iframe src=javascript:alert(1)>",
+        "<body onload=alert(1)>",
+        "<input onfocus=alert(1) autofocus>"
+      ],
+      "encodings": ["none", "url", "html_entity", "hex"],
+      "case_variations": true
+    },
+    
+    "path_traversal": {
+      "enabled": true,
+      "weight": 10,
+      "patterns": [
+        "../../../etc/passwd",
+        "..\\..\\..\\windows\\system32\\config\\sam",
+        "....//....//....//etc/passwd",
+        "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+        "..;/..;/..;/etc/passwd"
+      ],
+      "encodings": ["none", "url", "double_url"],
+      "case_variations": false
+    },
+    
+    "command_injection": {
+      "enabled": true,
+      "weight": 10,
+      "patterns": [
+        "; ls -la",
+        "| whoami",
+        "` cat /etc/passwd `",
+        "&& dir",
+        "|| echo vulnerable"
+      ],
+      "encodings": ["none", "url"],
+      "case_variations": false
+    },
+    
+    "api_abuse": {
+      "enabled": true,
+      "weight": 10,
+      "patterns": [
+        "/api/users?limit=999999",
+        "/api/admin/delete_all",
+        "/api/../../../etc/passwd",
+        "/api/export?format=../../etc/passwd"
+      ],
+      "rate_multiplier": 3
+    },
+    
+    "authentication_bypass": {
+      "enabled": true,
+      "weight": 10,
+      "patterns": [
+        {"username": "admin'--", "password": "anything"},
+        {"username": "' OR '1'='1", "password": "' OR '1'='1"},
+        {"username": "admin", "password": "admin' OR '1'='1--"}
+      ]
+    },
+    
+    "directory_scanning": {
+      "enabled": true,
+      "weight": 8,
+      "paths": [
+        "/admin", "/phpmyadmin", "/wp-admin", "/.git/config",
+        "/.env", "/config.php", "/backup.sql", "/database.sql",
+        "/.aws/credentials", "/api/swagger.json"
+      ],
+      "random_order": true
+    },
+    
+    "rate_limit_test": {
+      "enabled": true,
+      "weight": 5,
+      "burst_size": 50,
+      "delay_range": [0.01, 0.1]
+    },
+    
+    "crawler_impersonation": {
+      "enabled": true,
+      "weight": 12,
+      "fake_bots": ["googlebot", "bingbot", "yahoobot"],
+      "with_invalid_ip": true,
+      "stealth_fallback": true
+    },
+    
+    "http_method_abuse": {
+      "enabled": true,
+      "weight": 5,
+      "methods": ["PUT", "DELETE", "TRACE", "OPTIONS", "CONNECT"]
+    },
+
+    "ssrf": {
+      "enabled": true,
+      "weight": 8
+    },
+
+    "xxe": {
+      "enabled": true,
+      "weight": 7
+    },
+
+    "ssti": {
+      "enabled": true,
+      "weight": 7
+    },
+
+    "nosql_injection": {
+      "enabled": true,
+      "weight": 8
+    },
+
+    "ldap_injection": {
+      "enabled": true,
+      "weight": 5
+    },
+
+    "header_injection": {
+      "enabled": true,
+      "weight": 8
+    },
+
+    "graphql_injection": {
+      "enabled": true,
+      "weight": 7
+    },
+
+    "websocket_fuzzing": {
+      "enabled": true,
+      "weight": 6
+    },
+
+    "race_condition": {
+      "enabled": true,
+      "weight": 6
+    },
+
+    "idor": {
+      "enabled": true,
+      "weight": 9
+    },
+
+    "dns_rebinding": {
+      "enabled": true,
+      "weight": 4
+    },
+
+    "cache_poisoning": {
+      "enabled": true,
+      "weight": 6
+    },
+
+    "fingerprinting": {
+      "enabled": true,
+      "weight": 10
+    },
+
+    "subdomain_enum": {
+      "enabled": true,
+      "weight": 5
+    },
+
+    "metaverse_ar_vr_exploit": {
+      "enabled": true,
+      "weight": 3
+    },
+
+    "bci_spoofing": {
+      "enabled": true,
+      "weight": 2
+    },
+
+    "nanotech_bio_mimicry": {
+      "enabled": true,
+      "weight": 2
+    },
+
+    "space_based_cyberattack": {
+      "enabled": true,
+      "weight": 2
+    },
+
+    "quantum_entanglement_exfil": {
+      "enabled": true,
+      "weight": 2
+    },
+
+    "time_based_attacks": {
+      "enabled": true,
+      "weight": 6
+    },
+
+    "dimensional_traversal_simulation": {
+      "enabled": true,
+      "weight": 1
+    },
+
+    "psychological_warfare_ai": {
+      "enabled": true,
+      "weight": 4
+    },
+
+    "autonomous_swarm_drone_hijack": {
+      "enabled": true,
+      "weight": 3
+    },
+
+    "hologram_projection_spoofing": {
+      "enabled": true,
+      "weight": 2
+    }
+  },
+  
+  "evasion_techniques": {
+    "encoding_variations": {
+      "enabled": true,
+      "types": ["url", "double_url", "unicode", "html_entity", "hex"]
+    },
+    "case_variations": {
+      "enabled": true,
+      "modes": ["upper", "lower", "mixed", "alternating"]
+    },
+    "whitespace_injection": {
+      "enabled": true,
+      "chars": [" ", "\t", "\n", "/**/", "%20"]
+    },
+    "fragment_splitting": {
+      "enabled": true,
+      "split_points": [2, 3, 4]
+    }
+  },
+  
+  "polymorphic_behavior": {
+    "enabled": true,
+    "mutation_triggers": {
+      "block_rate_threshold": 0.6,
+      "consecutive_failures": 5
+    },
+    "strategies": [
+      "switch_encoding",
+      "change_case",
+      "add_whitespace",
+      "fragment_payload",
+      "rotate_user_agent",
+      "adjust_timing"
+    ]
+  },
+  
+  "legitimate_traffic": {
+    "enabled": true,
+    "weight": 20,
+    "behaviors": [
+      "normal_browsing",
+      "api_client",
+      "mobile_app",
+      "search_bot"
+    ]
+  }
+}

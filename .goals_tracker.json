@@ -69,7 +69,7 @@
     "start_date": "2025-12-13T09:00:02.464625",
     "progress": {
       "missions_generated": 300032,
-      "dataset_growth_mb": 77.64,
+      "dataset_growth_mb": 260.17,
       "gpu_training_runs": 0,
       "honeypot_attacks": 19,
       "model_accuracy": 0
@@ -79,7 +79,7 @@
     "start_date": "2025-12-13T09:00:02.464649",
     "progress": {
       "total_missions": 300032,
-      "dataset_size_gb": 0.08,
+      "dataset_size_gb": 0.25,
       "model_versions": 0,
       "system_uptime": 0,
       "documentation_updates": 0

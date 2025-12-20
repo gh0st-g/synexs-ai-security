@@ -27,9 +27,9 @@ while True:
     except (OSError, IOError, ValueError, TypeError) as e:
         print(f"❌ [cell_002] Error saving sequences to {final_filename}: {e}")
         time.sleep(60)  # Wait for 1 minute before retrying
-    except Exception as e:
-        print(f"❌ [cell_002] Unexpected error: {e}")
-        time.sleep(60)  # Wait for 1 minute before retrying
     except KeyboardInterrupt:
         print("Exiting...")
         break
+    except Exception as e:
+        print(f"❌ [cell_002] Unexpected error: {e}")
+        time.sleep(60)  # Wait for 1 minute before retrying

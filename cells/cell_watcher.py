@@ -1,9 +1,10 @@
 import os
 import json
 from datetime import datetime
+from pathlib import Path
 
-INBOX = "inbox/cell_watcher.json"
-OUTBOX = "inbox/CELL_017.json"
+INBOX = Path("inbox/cell_watcher.json")
+OUTBOX = Path("inbox/CELL_017.json")
 
 def process_message(msg):
     print(f"🤖 [cell_watcher] Received: {msg['signal']} — Action: {msg['action']}")
@@ -14,28 +15,55 @@ def process_message(msg):
         "response": "ACK_MONITOR",
         "timestamp": datetime.utcnow().isoformat()
     }
-    with open(OUTBOX, "a") as f:
-        f.write(json.dumps(response) + "\n")
-    print(f"📨 Sent response to {msg['from']}")
+    try:
+        with open(OUTBOX, "a") as f:
+            f.write(json.dumps(response) + "\n")
+    except OSError as e:
+        print(f"⚠️ Error writing to outbox: {e}")
+    else:
+        print(f"📨 Sent response to {msg['from']}")
 
 def read_messages():
-    if not os.path.exists(INBOX):
+    try:
+        if not INBOX.exists():
+            return []
+        with open(INBOX, "r") as f:
+            lines = f.readlines()
+    except OSError as e:
+        print(f"⚠️ Error reading from inbox: {e}")
         return []
-    with open(INBOX, "r") as f:
-        lines = f.readlines()
-    open(INBOX, "w").close()  # Clear inbox
-    return [json.loads(line) for line in lines]
+    else:
+        INBOX.unlink(missing_ok=True)  # Clear inbox
+        return [json.loads(line) for line in lines]
 
 def main():
-    messages = read_messages()
+    try:
+        messages = read_messages()
+    except Exception as e:
+        print(f"⚠️ Unexpected error: {e}")
+        return
     if not messages:
         print("📭 No messages for cell_watcher.")
         return
     for msg in messages:
         if msg.get("action") == "monitor":
-            process_message(msg)
+            try:
+                process_message(msg)
+            except Exception as e:
+                print(f"⚠️ Error processing message: {e}")
         else:
             print(f"⚠️  Ignored: Unexpected action '{msg.get('action')}'")
 
 if __name__ == "__main__":
-    main()
+    while True:
+        try:
+            main()
+        except KeyboardInterrupt:
+            print("Exiting...")
+            break
+        except Exception as e:
+            print(f"⚠️ Unexpected error: {e}")
+        finally:
+            # Add a delay to avoid busy-waiting
+            import time
+            time.sleep(5)

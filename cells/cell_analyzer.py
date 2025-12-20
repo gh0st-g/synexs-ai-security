@@ -19,24 +19,20 @@ def process_message(msg):
     try:
         with OUTBOX.open("a") as f:
             f.write(json.dumps(response) + "\n")
-    except (IOError, OSError) as e:
+    except (IOError, OSError, json.JSONDecodeError) as e:
         print(f"⚠️  Error writing to outbox: {e}")
     else:
         print(f"📨 Sent response to {msg['from']}")
 
 def read_messages():
     messages = []
-    if INBOX.exists():
-        try:
+    try:
+        if INBOX.exists():
             with INBOX.open("r") as f:
                 messages = [json.loads(line) for line in f.readlines()]
-        except (IOError, OSError) as e:
-            print(f"⚠️  Error reading from inbox: {e}")
-        finally:
-            try:
-                INBOX.unlink(missing_ok=True)  # Clear inbox
-            except (IOError, OSError) as e:
-                print(f"⚠️  Error clearing inbox: {e}")
+            INBOX.unlink(missing_ok=True)  # Clear inbox
+    except (IOError, OSError, json.JSONDecodeError) as e:
+        print(f"⚠️  Error reading from or clearing inbox: {e}")
     return messages
 
 def main():
@@ -45,7 +41,7 @@ def main():
             messages = read_messages()
             if not messages:
                 print("📭 No messages for cell_analyzer.")
-                sleep(1)  # Add a delay to prevent excessive CPU usage
+                sleep(5)  # Increase the delay to reduce CPU usage
                 continue
 
             for msg in messages:
@@ -55,7 +51,7 @@ def main():
                     print(f"⚠️  Ignored: Unexpected action '{msg.get('action')}'")
         except Exception as e:
             print(f"⚠️  Error processing messages: {e}")
-            sleep(1)  # Add a delay to prevent excessive CPU usage
+            sleep(5)  # Increase the delay to reduce CPU usage
 
 if __name__ == "__main__":
     try:
