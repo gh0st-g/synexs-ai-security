@@ -413,10 +413,10 @@ def review_core_cells() -> str:
         return f"❌ Core review failed: {e}"
 
 def run_propagate() -> bool:
-    """Run propagate_v3.py to spawn agents"""
+    """Run propagate_v4.5.py to spawn agents"""
     try:
         result = subprocess.run(
-            ["python3", "propagate_v3.py"],
+            ["python3", "propagate_v4.5.py"],
             cwd=WORK_DIR,
             capture_output=True,
             text=True,

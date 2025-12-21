@@ -128,7 +128,7 @@ def check_critical_processes() -> Dict[str, any]:
     critical_processes = [
         'honeypot_server.py',
         'listener.py',
-        'propagate_v3.py',
+        'propagate_v4.5.py',
         'ai_swarm_fixed.py'
     ]
 

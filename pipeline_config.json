@@ -47,8 +47,8 @@
       }
     },
     {
-      "name": "propagate_v3",
-      "script": "/root/synexs/propagate_v3.py",
+      "name": "propagate_v4.5",
+      "script": "/root/synexs/propagate_v4.5.py",
       "python": "/usr/bin/python3",
       "working_dir": "/root/synexs",
       "args": [],
