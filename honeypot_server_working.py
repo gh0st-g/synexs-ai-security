@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from flask import Flask, request, jsonify
 from typing import Dict, List
+import sys
 import logging
 
 app = Flask(__name__)
@@ -101,7 +102,7 @@ def health():
     return jsonify({
         "status": "healthy",
         "service": "Synexs Honeypot",
-        "version": "1.1-improved",
+        "version": "1.0-improved",
         "total_requests": STATS["total_requests"],
         "waf_blocks": STATS["waf_blocks"],
         "rate_limits": STATS["rate_limits"]
@@ -125,79 +126,89 @@ def catch_all(path):
     """Catch all requests and analyze them"""
     STATS["total_requests"] += 1
 
-    ip = request.remote_addr
-    method = request.method
-    headers = dict(request.headers)
-    user_agent = headers.get('User-Agent', '')
+    try:
+        ip = request.remote_addr
+        method = request.method
+        headers = dict(request.headers)
+        user_agent = headers.get('User-Agent', '')
 
-    # Build request data
-    request_data = {
-        "timestamp": datetime.now().isoformat(),
-        "ip": ip,
-        "method": method,
-        "path": f"/{path}",
-        "headers": {k: v for k, v in headers.items() if k in ['User-Agent', 'Referer', 'Host']},
-        "args": dict(request.args),
-        "data": request.get_data(as_text=True)[:500]
-    }
-
-    # Check rate limit
-    if check_rate_limit(ip, limit=20, window=10):
-        STATS["rate_limits"] += 1
-        log_attack({**request_data, "result": "rate_limited"})
-        return jsonify({"error": "Rate limit exceeded"}), 429
-
-    # WAF detection
-    waf_result = waf_detection(
-        user_agent,
-        path,
-        request_data["data"]
-    )
-
-    if waf_result["should_block"]:
-        STATS["waf_blocks"] += 1
-        log_attack({
-            **request_data,
-            "waf_score": waf_result["score"],
-            "patterns": waf_result["patterns"],
-            "result": "waf_blocked"
-        })
-        return jsonify({
-            "error": "Request blocked by WAF",
-            "reason": "Suspicious patterns detected"
-        }), 403
-
-    # Log the request
-    log_attack({**request_data, "result": "allowed", "waf_score": waf_result["score"]})
-
-    # Return fake response based on path
-    if "admin" in path.lower():
-        return jsonify({
-            "message": "Admin login",
-            "status": "authentication_required"
-        })
-    elif "api" in path.lower():
-        return jsonify({
-            "message": "API endpoint",
-            "version": "1.0",
-            "endpoints": ["/api/users", "/api/data", "/api/login"]
-        })
-    else:
-        return jsonify({
-            "message": "Request processed",
+        # Build request data
+        request_data = {
+            "timestamp": datetime.now().isoformat(),
+            "ip": ip,
             "method": method,
-            "path": f"/{path}"
-        })
+            "path": f"/{path}",
+            "headers": {k: v for k, v in headers.items() if k in ['User-Agent', 'Referer', 'Host']},
+            "args": dict(request.args),
+            "data": request.get_data(as_text=True)[:500]
+        }
+
+        # Check rate limit
+        if check_rate_limit(ip, limit=20, window=10):
+            STATS["rate_limits"] += 1
+            log_attack({**request_data, "result": "rate_limited"})
+            return jsonify({"error": "Rate limit exceeded"}), 429
+
+        # WAF detection
+        waf_result = waf_detection(
+            user_agent,
+            path,
+            request_data["data"]
+        )
+
+        if waf_result["should_block"]:
+            STATS["waf_blocks"] += 1
+            log_attack({
+                **request_data,
+                "waf_score": waf_result["score"],
+                "patterns": waf_result["patterns"],
+                "result": "waf_blocked"
+            })
+            return jsonify({
+                "error": "Request blocked by WAF",
+                "reason": "Suspicious patterns detected"
+            }), 403
+
+        # Log the request
+        log_attack({**request_data, "result": "allowed", "waf_score": waf_result["score"]})
+
+        # Return fake response based on path
+        if "admin" in path.lower():
+            return jsonify({
+                "message": "Admin login",
+                "status": "authentication_required"
+            })
+        elif "api" in path.lower():
+            return jsonify({
+                "message": "API endpoint",
+                "version": "1.0",
+                "endpoints": ["/api/users", "/api/data", "/api/login"]
+            })
+        else:
+            return jsonify({
+                "message": "Request processed",
+                "method": method,
+                "path": f"/{path}"
+            })
+
+    except Exception as e:
+        logging.error(f"Error processing request: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
-    logging.info("\n" + "="*60)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    logging.info("="*60)
     logging.info("🚀 SYNEXS HONEYPOT - IMPROVED VERSION")
     logging.info("="*60)
     logging.info("✅ WAF Detection: Enabled")
     logging.info("✅ Rate Limiting: 20 req/10sec per IP")
     logging.info("✅ Logging: Active")
     logging.info(f"📁 Log file: {HONEYPOT_LOG}")
-    logging.info("="*60 + "\n")
+    logging.info("="*60)
 
-    app.run(host='127.0.0.1', port=8080, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=8080, debug=False, threaded=True)
