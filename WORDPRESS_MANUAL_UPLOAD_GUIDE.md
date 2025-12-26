@@ -54,7 +54,7 @@ If you're working from a remote server, download the files first:
 
 ```bash
 # From your local machine, run:
-scp -r root@157.245.3.180:~/Downloads/wordpress_html/ ~/Desktop/synexs_docs/
+scp -r root@your-target.com:~/Downloads/wordpress_html/ ~/Desktop/synexs_docs/
 ```
 
 Then open each HTML file in a text editor and copy/paste into WordPress.

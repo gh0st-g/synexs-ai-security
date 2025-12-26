@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="text-align: center;">
+    <h1>Welcome to CryptoVault</h1>
+    <p style="font-size: 1.2rem; margin: 2rem 0;">The most secure cryptocurrency wallet platform</p>
+
+    <div style="display: flex; gap: 2rem; justify-content: center; margin-top: 2rem;">
+        <div style="flex: 1; max-width: 300px; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+            <h3>🔒 Bank-Grade Security</h3>
+            <p>Military-grade encryption protects your assets</p>
+        </div>
+        <div style="flex: 1; max-width: 300px; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+            <h3>⚡ Instant Transfers</h3>
+            <p>Send and receive crypto in seconds</p>
+        </div>
+        <div style="flex: 1; max-width: 300px; padding: 2rem; background: #f8f9fa; border-radius: 10px;">
+            <h3>💰 Multiple Currencies</h3>
+            <p>Support for BTC, ETH, USDT and more</p>
+        </div>
+    </div>
+
+    {% if not user.is_authenticated %}
+    <div style="margin-top: 3rem;">
+        <a href="{% url 'register' %}" class="btn" style="font-size: 1.2rem; padding: 1rem 2rem;">Get Started Now</a>
+        <a href="{% url 'login' %}" class="btn" style="font-size: 1.2rem; padding: 1rem 2rem; background: #6c757d; margin-left: 1rem;">Login</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>API Documentation</h2>
+    <p>Developers can integrate with our APIs:</p>
+    <ul style="margin: 1rem 0; line-height: 2;">
+        <li><a href="/api/wallets/">REST API - Wallets</a></li>
+        <li><a href="/api/user/?id=1">REST API - User Info</a></li>
+        <li><a href="/graphql/">GraphQL Explorer</a></li>
+        <li><a href="/system-check/?cmd=whoami">System Health Check</a></li>
+        <li><a href="/fetch-price/">Price API</a></li>
+        <li><a href="/debug/">Debug Info</a></li>
+    </ul>
+</div>
+{% endblock %}

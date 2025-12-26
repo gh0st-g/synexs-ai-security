@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}XML Upload - CryptoVault{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>XML Data Import</h1>
+    <p>Import transaction data in XML format</p>
+
+    <form method="post">
+        <div class="form-group">
+            <label for="xml">XML Data:</label>
+            <textarea id="xml" name="xml" rows="10" placeholder="Paste your XML data here"></textarea>
+            <button type="submit" class="btn">Process XML</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

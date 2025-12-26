@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - CryptoVault{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ user.username }}!</h1>
+
+<div class="balance-card">
+    <h2>Your Wallet</h2>
+    <div style="margin-top: 1rem;">
+        <p>Address: <code>{{ user.wallet_address }}</code></p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem;">
+        <div>
+            <p style="opacity: 0.9;">Bitcoin (BTC)</p>
+            <p class="balance-amount">{{ user.balance_btc }}</p>
+        </div>
+        <div>
+            <p style="opacity: 0.9;">Ethereum (ETH)</p>
+            <p class="balance-amount">{{ user.balance_eth }}</p>
+        </div>
+        <div>
+            <p style="opacity: 0.9;">Tether (USDT)</p>
+            <p class="balance-amount">${{ user.balance_usdt }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>⚠️ Your Recovery Seed Phrase</h2>
+    <p style="color: #d97706;">Keep this safe! Never share with anyone!</p>
+    <div class="seed-phrase">
+        {{ user.wallet_seed }}
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Transactions</h2>
+    {% if transactions %}
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Currency</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tx in transactions %}
+            <tr>
+                <td>{{ tx.transaction_type }}</td>
+                <td>{{ tx.currency }}</td>
+                <td>{{ tx.amount }}</td>
+                <td>{{ tx.status }}</td>
+                <td>{{ tx.timestamp|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No transactions yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>🎯 Test IDOR Vulnerability</h3>
+    <p>Try accessing other users' wallets by changing the user_id parameter:</p>
+    <form method="get">
+        <div class="form-group">
+            <label>User ID:</label>
+            <input type="number" name="user_id" value="{{ user.id }}" min="1">
+            <button type="submit" class="btn">View Dashboard</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

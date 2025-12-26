@@ -209,7 +209,7 @@ mv synexs_status.py archive/old_tools/
 **Current State**:
 - Not running currently
 - Was last active Nov 8
-- Hardcoded external IP: `157.245.3.180`
+- Hardcoded external IP: `your-target.com`
 
 **✅ RECOMMENDATION**:
 - ❌ **DO NOT** run unless authorized security testing

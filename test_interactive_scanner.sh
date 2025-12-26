@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Demo script to show the interactive scanner in action
+# This simulates user input for testing purposes
+#
+
+echo "This is a demo of the interactive vulnerability scanner"
+echo "Run this to see how the scanner works:"
+echo ""
+echo "  ./vuln_scanner.sh"
+echo ""
+echo "Example inputs for scanning the honeypot:"
+echo ""
+echo "1. Target URL: your-target.com"
+echo "2. Scan type: 1 (or just press Enter for all scans)"
+echo "3. Verbose: n (or just press Enter)"
+echo "4. Save to file: n (or y if you want a report)"
+echo "5. Timeout: 10 (or just press Enter)"
+echo "6. Confirm: y"
+echo "7. Authorization: yes"
+echo ""
+echo "That's it! The scanner will then run automatically."
+echo ""
+echo "For a quick test, here's all the inputs in order:"
+echo "---"
+echo "your-target.com"
+echo "1"
+echo "n"
+echo "n"
+echo ""
+echo "y"
+echo "yes"
+echo "---"
+echo ""
+echo "Ready to try? Run: ./vuln_scanner.sh"

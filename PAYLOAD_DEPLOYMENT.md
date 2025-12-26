@@ -12,7 +12,7 @@ This system tests AV detection mechanisms and trains the AI swarm to adapt based
 ## Architecture
 
 ```
-Windows Laptop (Target)           VPS (157.245.3.180)           Docker Swarm
+Windows Laptop (Target)           VPS (your-target.com)           Docker Swarm
 ─────────────────────            ─────────────────────         ───────────────
 
 payload_agent.py                  report_server.py              ai_swarm_fixed.py
@@ -31,21 +31,21 @@ payload_agent.py                  report_server.py              ai_swarm_fixed.p
 
 ## Setup
 
-### 1. VPS Setup (157.245.3.180)
+### 1. VPS Setup (your-target.com)
 
 ```bash
 # SSH into VPS
-ssh root@157.245.3.180
+ssh root@your-target.com
 
 # Upload report server
-scp report_server.py root@157.245.3.180:/root/synexs/
+scp report_server.py root@your-target.com:/root/synexs/
 
 # Start server
 cd /root/synexs
 nohup python3 report_server.py > report_server.log 2>&1 &
 
 # Check status
-curl http://157.245.3.180:8080/health
+curl http://your-target.com:8080/health
 ```
 
 ### 2. Target System (Windows Laptop)
@@ -108,7 +108,7 @@ python3 payload_agent.py
 
 ```bash
 # On laptop:
-# 1. Block 157.245.3.180 in firewall
+# 1. Block your-target.com in firewall
 # 2. Run agent
 
 # Expected:
@@ -186,7 +186,7 @@ for kill in real_kills:
 - All systems owned and controlled by operator
 - No third-party targets
 - Defensive research only
-- VPS at 157.245.3.180 is authorized
+- VPS at your-target.com is authorized
 - Self-destruct prevents forensic traces
 
 ## Monitoring
@@ -202,7 +202,7 @@ cat /root/synexs/datasets/real_world_kills.json | jq
 docker logs synexs-swarm | grep "AV KILL"
 
 # View stats
-curl http://157.245.3.180:8080/stats | jq
+curl http://your-target.com:8080/stats | jq
 ```
 
 ## Troubleshooting

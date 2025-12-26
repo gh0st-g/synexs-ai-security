@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload - CryptoVault{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>File Upload</h1>
+    <p style="color: #d97706;">🎯 VULN: Unrestricted file upload - allows webshells</p>
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Choose File:</label>
+            <input type="file" id="file" name="file" required>
+            <button type="submit" class="btn">Upload</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 5px;">
+        <strong>Upload a webshell:</strong>
+        <p>Try uploading a PHP webshell or reverse shell script</p>
+        <p>No file type restrictions!</p>
+    </div>
+</div>
+
+<div class="card">
+    <h1>Download Files</h1>
+    <p style="color: #d97706;">🎯 VULN: Path Traversal vulnerability</p>
+
+    <form method="get" action="{% url 'download' %}">
+        <div class="form-group">
+            <label for="file">File Path:</label>
+            <input type="text" id="file" name="file" placeholder="Try: ../../../etc/passwd" style="width: 100%;">
+            <button type="submit" class="btn">Download</button>
+        </div>
+    </form>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 5px;">
+        <strong>Path Traversal Examples:</strong>
+        <ul>
+            <li><code>../../../etc/passwd</code></li>
+            <li><code>../../../etc/shadow</code></li>
+            <li><code>../../db.sqlite3</code></li>
+            <li><code>../../cryptovault/settings.py</code></li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

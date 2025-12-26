@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Panel - CryptoVault{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Admin Panel</h1>
+    <p style="color: #d97706;">🎯 VULN: Broken Access Control - no real admin check!</p>
+
+    {% if is_admin %}
+    <div class="alert alert-success">You have admin access!</div>
+
+    <h2>All Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Wallet Address</th>
+                <th>BTC Balance</th>
+                <th>Seed Phrase</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.wallet_address }}</td>
+                <td>{{ u.balance_btc }}</td>
+                <td style="font-size: 0.8rem; color: #d97706;">{{ u.wallet_seed }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2 style="margin-top: 2rem;">Recent Attack Logs</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>IP</th>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Attack Type</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in attack_logs %}
+            <tr>
+                <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+                <td>{{ log.ip_address }}</td>
+                <td>{{ log.method }}</td>
+                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">{{ log.path }}</td>
+                <td>{{ log.attack_type|default:"-" }}</td>
+                <td style="color: {% if log.severity == 'critical' %}#dc2626{% elif log.severity == 'high' %}#ea580c{% elif log.severity == 'medium' %}#d97706{% else %}#666{% endif %};">
+                    {{ log.severity }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% else %}
+    <div class="alert alert-error">Access Denied - Admin privileges required</div>
+
+    <div style="margin-top: 2rem; padding: 1rem; background: #f0f0f0; border-radius: 5px;">
+        <strong>Bypass Examples:</strong>
+        <ul>
+            <li>Try: <a href="?role=admin">?role=admin</a></li>
+            <li>HTTP Parameter Pollution: <code>?role=user&role=admin</code></li>
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
